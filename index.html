@@ -1,284 +1,216 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-[#050507] text-slate-100 antialiased">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimalist Breaking News Dashboard</title>
+  <title>e-news | Financial Intelligence</title>
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
           colors: {
-            brand: {
-              black: '#070709',
-              card: '#0f1015',
-              border: '#1f222e',
-              muted: '#8b92a5',
-              accent: '#3b82f6',
-              emerald: '#10b981',
-              rose: '#f43f5e',
-            }
+            brand: '#3b82f6',
+            positive: '#10b981',
+            negative: '#ef4444',
+            neutral: '#8b5cf6',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
 
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
+    /* Custom CSS for seamless minimal animations */
     body {
-      background-color: #070709;
-      color: #f3f4f6;
-      user-select: none;
-      -webkit-user-select: none;
-      overflow-x: hidden;
+      touch-action: pan-x pan-y;
+      font-family: 'Inter', sans-serif;
     }
 
-    /* Custom Scrollbars */
-    .custom-scrollbar::-webkit-scrollbar {
+    /* Blur & Slide Transitions */
+    .slide-enter {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      filter: blur(8px);
+    }
+    .slide-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide-exit-up {
+      opacity: 0;
+      transform: translateY(-24px) scale(0.98);
+      filter: blur(8px);
+      transition: all 0.35s cubic-bezier(0.7, 0, 0.84, 0);
+    }
+    .slide-exit-down {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      filter: blur(8px);
+      transition: all 0.35s cubic-bezier(0.7, 0, 0.84, 0);
+    }
+
+    /* Custom smooth scrollbar for detail pane */
+    .expanded-scroll-area::-webkit-scrollbar {
       width: 4px;
     }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(15, 16, 21, 0.6);
+    .expanded-scroll-area::-webkit-scrollbar-track {
+      background: transparent;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #2a2e3d;
-      border-radius: 2px;
+    .expanded-scroll-area::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #3b82f6;
-    }
-
-    /* Shimmer Effect for Loading Skeletons */
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    .skeleton-box {
-      background: linear-gradient(90deg, #13151c 25%, #1f2330 37%, #13151c 63%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
+    .expanded-scroll-area::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
-    /* Headline Change Animations */
-    .anim-headline-next {
-      animation: headlineNext 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Pulse Glow */
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
     }
-    .anim-headline-prev {
-      animation: headlinePrev 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes headlineNext {
-      0% { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(4px); }
-      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    }
-    @keyframes headlinePrev {
-      0% { opacity: 0; transform: translateY(-18px) scale(0.98); filter: blur(4px); }
-      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    }
-
-    /* Visual Flash Pulse on News Update */
-    .flash-ring {
-      animation: ringPulse 0.8s ease-out 1;
-    }
-    @keyframes ringPulse {
-      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-      70% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
-    /* Pulse Glow for Live Dot */
-    .live-pulse {
-      animation: livePulse 1.8s infinite;
-    }
-    @keyframes livePulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.3; transform: scale(0.85); }
+    .live-dot {
+      animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between font-sans antialiased text-gray-200 selection:bg-blue-500 selection:text-white">
 
-  <!-- TOP MAIN NAVBAR -->
-  <header class="w-full border-b border-brand-border/60 bg-brand-black/90 backdrop-blur-md sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
+<body class="h-full flex flex-col justify-between overflow-hidden select-none bg-[#050507] text-slate-100">
+
+  <!-- HEADER NAVBAR -->
+  <header class="w-full px-6 md:px-12 py-3.5 flex items-center justify-between z-30 shrink-0">
     <div class="flex items-center space-x-3">
-      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-pulse"></div>
-      <span class="font-mono text-xs font-semibold tracking-wider text-gray-300 uppercase">AURA NEWS STREAM</span>
+      <span class="text-xl font-bold tracking-tight text-white flex items-center space-x-1.5">
+        <span class="text-brand">e</span><span>-news</span>
+      </span>
+      <span class="hidden sm:inline-block text-[11px] font-mono uppercase tracking-widest text-slate-500 pl-2">
+        Financial Intelligence
+      </span>
     </div>
 
     <div class="flex items-center space-x-4">
-      <!-- Mute / Unmute Audio Toggle -->
-      <button id="soundToggleBtn" onclick="toggleAudio()" class="text-gray-400 hover:text-white transition-colors text-sm p-1.5 rounded-lg hover:bg-brand-card border border-transparent hover:border-brand-border" title="Toggle Sound">
-        <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+      <!-- Live Status Pill -->
+      <button id="liveStatusBtn" class="flex items-center space-x-2 px-2.5 py-1 rounded-full text-xs font-mono transition-all duration-300 hover:bg-white/5">
+        <span id="liveDot" class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+        <span id="liveText" class="text-slate-300 text-[11px] uppercase tracking-wider font-medium">LIVE</span>
       </button>
 
-      <!-- User Avatar Sign-in Trigger -->
-      <button onclick="triggerAuthModal()" class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-brand-card border border-transparent hover:border-brand-border">
+      <!-- Sound Mute Toggle -->
+      <button id="soundToggleBtn" title="Toggle Audio Notifications" class="p-2 text-slate-400 hover:text-white transition-colors duration-200 rounded-full hover:bg-white/5">
+        <i id="soundIcon" class="fa-solid fa-volume-high text-sm"></i>
+      </button>
+
+      <!-- Account Avatar -->
+      <button class="p-1 text-slate-400 hover:text-white transition-colors duration-200">
         <i class="fa-regular fa-circle-user text-lg"></i>
-        <span class="text-xs font-mono hidden sm:inline-block">SIGN IN</span>
       </button>
     </div>
   </header>
 
-  <!-- SECONDARY LIVE NEWS TICKER BAR (Shown below top navbar) -->
-  <div id="liveTickerBar" class="w-full bg-blue-950/30 border-b border-blue-500/20 px-4 py-2 flex items-center justify-between transition-all duration-300">
-    <div class="flex items-center space-x-2 overflow-hidden mr-3">
-      <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
-        LIVE BREAKING
-      </span>
-      <p id="liveTickerText" class="text-xs text-gray-300 truncate font-sans">
-        Initializing high-impact intelligence feed...
-      </p>
+  <!-- BREAKING TICKER BAR (Conditionally Shown when not on live item or paused) -->
+  <div id="tickerBanner" class="w-full px-6 md:px-12 py-2 bg-gradient-to-r from-blue-950/20 via-indigo-950/30 to-blue-950/20 text-xs font-mono flex items-center justify-between transition-all duration-300 transform -translate-y-full opacity-0 pointer-events-none z-20 shrink-0">
+    <div class="flex items-center space-x-3 truncate pr-4">
+      <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] uppercase font-bold tracking-wider shrink-0">Historical</span>
+      <span id="tickerText" class="text-slate-300 truncate font-light">You are viewing previous news archives.</span>
     </div>
-    <button onclick="jumpToLiveNews()" class="shrink-0 text-[11px] font-mono text-blue-400 hover:text-blue-300 flex items-center space-x-1 underline underline-offset-2">
+    <button id="jumpToLiveBtn" class="shrink-0 flex items-center space-x-1.5 text-blue-400 hover:text-blue-300 text-[11px] font-semibold tracking-wide uppercase transition-colors">
       <span>JUMP TO LIVE</span>
-      <i class="fa-solid fa-arrow-right text-[10px]"></i>
+      <i class="fa-solid fa-arrow-up text-[10px]"></i>
     </button>
   </div>
 
-  <!-- MAIN DASHBOARD CONTAINER -->
-  <main id="mainContainer" class="flex-1 max-w-4xl w-full mx-auto px-4 md:px-6 py-6 md:py-10 flex flex-col justify-center relative">
+  <!-- MAIN DISPLAY AREA -->
+  <main id="mainContainer" class="flex-1 w-full max-w-5xl mx-auto px-6 md:px-12 py-2 flex flex-col justify-center relative z-10 overflow-hidden">
     
-    <!-- Drag Visual Feedback Banner -->
-    <div id="dragFeedback" class="opacity-0 transition-opacity duration-200 pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 bg-brand-border/90 border border-gray-700 text-gray-300 px-4 py-1.5 rounded-full text-xs font-mono tracking-wide z-30 shadow-xl">
-      <span id="dragFeedbackText">DRAG TO NAVIGATE</span>
-    </div>
+    <!-- Story Card Content Wrapper -->
+    <div id="storyCard" class="slide-active flex flex-col w-full h-full justify-center max-h-[82vh]">
 
-    <!-- NEWS CARD CONTENT CONTAINER -->
-    <div id="newsCard" class="transition-transform duration-150 ease-out">
-      
-      <!-- TOP METADATA ROW: Ticker Badge & AI Sentiment Tag -->
-      <div class="flex flex-wrap items-center gap-3 mb-4">
-        <!-- Stock Ticker Badge -->
-        <div id="stockBadge" class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-semibold shadow-sm">
-          <span id="stockSymbol" class="text-white">---</span>
-          <span id="stockChange" class="text-gray-400">---</span>
-        </div>
-
-        <!-- AI Sentiment Tag (Updates after 1s delay) -->
-        <div id="aiSentimentBadge" class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-medium text-gray-400 transition-all duration-300">
-          <i class="fa-solid fa-microchip animate-spin text-blue-400"></i>
-          <span id="aiSentimentText">AI Analyzing market sentiment...</span>
-        </div>
+      <!-- Meta Pill Info Line -->
+      <div class="flex items-center space-x-3 mb-3 text-xs font-mono shrink-0">
+        <span id="tickerBadge" class="text-slate-200 font-bold tracking-wider text-sm">
+          NVDA
+        </span>
+        <span id="sentimentTag" class="px-2 py-0.5 rounded text-[11px] font-medium tracking-wide uppercase">
+          Strong Positive
+        </span>
+        <span id="storyTime" class="text-slate-500 text-[11px]">
+          2 mins ago
+        </span>
       </div>
 
-      <!-- MAIN HEADLINE -->
-      <h1 id="newsHeadline" class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight mb-4 transition-all">
-        Loading breaking news update...
+      <!-- Main Dynamic Headline -->
+      <h1 id="storyHeadline" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-100 tracking-tight leading-[1.15] mb-4 shrink-0 transition-all cursor-pointer">
+        NVIDIA Unveils Next-Gen Blackwell Ultra Architecture, Surpassing Analyst AI Compute Benchmarks by 40%
       </h1>
 
-      <!-- TIMESTAMP & TIME AGO -->
-      <div class="flex items-center space-x-2 font-mono text-xs text-brand-muted mb-6">
-        <i class="fa-regular fa-clock"></i>
-        <span id="newsTime">Just now</span>
+      <!-- Mini Accordion Trigger (Ultra Minimal) -->
+      <div class="shrink-0 mb-2">
+        <button id="accordionToggleBtn" class="group inline-flex items-center space-x-2 text-xs font-mono tracking-widest text-slate-400 hover:text-white transition-colors duration-200 py-1">
+          <span id="accordionBtnText" class="uppercase">TAP FOR DETAILS & ANALYSIS</span>
+          <i id="accordionChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 group-hover:translate-y-0.5"></i>
+        </button>
       </div>
 
-      <!-- INLINE EXPANDABLE DETAILS MINI BAR -->
-      <div class="mt-6 border-t border-brand-border/80 pt-4">
-        <button id="expandToggleBtn" onclick="toggleDetails()" class="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-brand-card hover:bg-brand-border/40 border border-brand-border text-left transition-all group">
-          <div class="flex items-center space-x-3">
-            <i id="expandChevron" class="fa-solid fa-chevron-right text-xs text-blue-400 transition-transform duration-300"></i>
-            <span class="font-mono text-xs font-semibold tracking-wider text-gray-300 group-hover:text-white uppercase">
-              TAP TO EXPAND DETAILS / METRICS & ANALYSIS
-            </span>
-          </div>
-          <span id="expandStatusLabel" class="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-800 text-gray-400">
-            COLLAPSED
-          </span>
-        </button>
-
-        <!-- EXPANDABLE CONTENT SECTION -->
-        <div id="detailsDrawer" class="hidden mt-4 space-y-6 transition-all duration-300">
+      <!-- Expanded In-Place Details (Hidden by default) -->
+      <div id="expandedDetails" class="hidden flex-1 overflow-hidden transition-all duration-300 mt-2">
+        <!-- Scrollable Isolated Area -->
+        <div class="expanded-scroll-area h-full overflow-y-auto pr-3 space-y-6 text-sm leading-relaxed text-slate-300">
           
-          <!-- DEDICATED SCROLL CONTAINER FOR EXPANDED DETAILS -->
-          <div id="detailsScrollArea" class="expanded-scroll-area max-h-[60vh] overflow-y-auto pr-2 space-y-6 custom-scrollbar">
-            
-            <!-- SECTION 1: STOCK METRICS -->
-            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
-              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                STOCK METRICS & FUNDAMENTALS
-              </h3>
-              
-              <!-- Skeleton Loader for Stock Metrics -->
-              <div id="stockMetricsSkeleton" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div class="h-14 skeleton-box rounded"></div>
-                <div class="h-14 skeleton-box rounded"></div>
-                <div class="h-14 skeleton-box rounded"></div>
-                <div class="h-14 skeleton-box rounded"></div>
-              </div>
-
-              <!-- Loaded Stock Content -->
-              <div id="stockMetricsContent" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
-                  <span class="text-gray-500 block text-[10px]">LAST PRICE</span>
-                  <span id="metricPrice" class="text-white font-semibold text-sm">$0.00</span>
-                </div>
-                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
-                  <span class="text-gray-500 block text-[10px]">DAY CHANGE</span>
-                  <span id="metricChange" class="font-semibold text-sm">+0.00%</span>
-                </div>
-                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
-                  <span class="text-gray-500 block text-[10px]">24H VOLUME</span>
-                  <span id="metricVolume" class="text-gray-300 font-semibold text-sm">--</span>
-                </div>
-                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
-                  <span class="text-gray-500 block text-[10px]">VOLATILITY</span>
-                  <span id="metricVolatility" class="text-gray-300 font-semibold text-sm">--</span>
-                </div>
-              </div>
+          <!-- Key Metrics Line -->
+          <div id="metricsRow" class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3 border-y border-white/5 font-mono text-xs">
+            <div>
+              <div class="text-slate-500 text-[10px] uppercase">Stock Price</div>
+              <div id="metricPrice" class="text-white font-semibold text-sm">$138.25 <span class="text-emerald-400 text-xs font-normal">+4.2%</span></div>
             </div>
-
-            <!-- SECTION 2: FULL NEWS BODY -->
-            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
-              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                NEWS BODY
-              </h3>
-
-              <!-- Skeleton Loader for News Body -->
-              <div id="newsBodySkeleton" class="space-y-2">
-                <div class="h-4 skeleton-box rounded w-full"></div>
-                <div class="h-4 skeleton-box rounded w-5/6"></div>
-                <div class="h-4 skeleton-box rounded w-4/6"></div>
-              </div>
-
-              <!-- Loaded News Body Text -->
-              <p id="newsBodyText" class="hidden text-sm leading-relaxed text-gray-300 font-sans">
-              </p>
+            <div>
+              <div class="text-slate-500 text-[10px] uppercase">Volume Spike</div>
+              <div id="metricVolume" class="text-white font-semibold text-sm">2.4x Avg</div>
             </div>
-
-            <!-- SECTION 3: DEEP AI ANALYSIS -->
-            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
-              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                DEEP AI STRATEGIC ANALYSIS
-              </h3>
-
-              <!-- Skeleton Loader for AI Analysis -->
-              <div id="aiAnalysisSkeleton" class="space-y-2">
-                <div class="h-4 skeleton-box rounded w-full"></div>
-                <div class="h-4 skeleton-box rounded w-3/4"></div>
-              </div>
-
-              <!-- Loaded AI Analysis Content -->
-              <div id="aiAnalysisContent" class="hidden text-sm leading-relaxed text-gray-300 font-sans space-y-2">
-                <p id="aiAnalysisSummary"></p>
-                <div class="p-3 rounded bg-blue-950/20 border border-blue-500/20 text-xs font-mono text-blue-300 mt-2">
-                  <span class="font-bold">RECOMMENDED ACTION:</span> <span id="aiActionText">--</span>
-                </div>
-              </div>
+            <div>
+              <div class="text-slate-500 text-[10px] uppercase">AI Confidence</div>
+              <div id="metricConfidence" class="text-emerald-400 font-semibold text-sm">94%</div>
             </div>
-
+            <div>
+              <div class="text-slate-500 text-[10px] uppercase">Market Impact</div>
+              <div id="metricImpact" class="text-white font-semibold text-sm">High (Tech)</div>
+            </div>
           </div>
+
+          <!-- Narrative Summary -->
+          <div>
+            <h3 class="text-xs font-mono uppercase text-slate-400 mb-2 tracking-wider">Executive Summary</h3>
+            <p id="storySummary" class="font-light text-slate-200 leading-relaxed text-base">
+              NVIDIA announced its updated Blackwell Ultra lineup during an unannounced keynote. Early performance metrics demonstrate a 40% jump in LLM training efficiency and significantly reduced energy consumption per token, sparking an immediate rally across semiconductor partners.
+            </p>
+          </div>
+
+          <!-- Deep AI Insights -->
+          <div>
+            <h3 class="text-xs font-mono uppercase text-slate-400 mb-2 tracking-wider">Deep AI Financial Impact</h3>
+            <div id="aiImpactText" class="space-y-2 text-slate-300 font-light text-sm">
+              <p>• <strong>Supply Chain Vector:</strong> TSMC foundry capacity allocation for 3nm nodes expected to increase by 15% through Q4.</p>
+              <p>• <strong>Hyperscaler Capex:</strong> Cloud providers (Microsoft, Amazon, Google) likely to adjust FY27 AI infrastructure budgets upward.</p>
+              <p>• <strong>Competitor Pressure:</strong> Puts short-term margin pressure on secondary GPU suppliers while cementing enterprise market dominance.</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -286,526 +218,441 @@
 
   </main>
 
-  <!-- BOTTOM FOOTER & NAVIGATION CONTROLS -->
-  <footer class="w-full border-t border-brand-border/60 bg-brand-black/90 px-4 md:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-brand-muted">
-    
-    <!-- Gesture Hints -->
-    <div class="flex items-center space-x-3">
-      <span><i class="fa-solid fa-arrows-up-down text-gray-500 mr-1"></i> Drag Up/Down: History</span>
-      <span>•</span>
-      <span>Tap bar: Details</span>
+  <!-- FOOTER CONTROLS & TIMELINE -->
+  <footer class="w-full px-6 md:px-12 py-3 z-30 shrink-0 flex items-center justify-between text-xs font-mono text-slate-500">
+    <!-- Auto-Cycle Indicator -->
+    <div class="flex items-center space-x-2">
+      <button id="pauseToggleBtn" class="hover:text-slate-300 transition-colors flex items-center space-x-1.5">
+        <i id="pauseIcon" class="fa-solid fa-pause text-xs"></i>
+        <span id="pauseStatusText" class="text-[11px] uppercase tracking-wider">Auto Play</span>
+      </button>
+      <div class="w-16 h-0.5 bg-slate-800 rounded-full overflow-hidden ml-2">
+        <div id="timerProgress" class="h-full bg-blue-500 transition-all duration-100 ease-linear" style="width: 0%;"></div>
+      </div>
     </div>
 
-    <!-- Timeline Navigation Indicators -->
-    <div class="flex items-center space-x-4">
-      <button onclick="prevStory()" class="hover:text-white transition-colors p-1" title="Previous Story">
-        <i class="fa-solid fa-chevron-up"></i>
-      </button>
-
-      <!-- Clickable Indicator Dots -->
-      <div id="timelineDots" class="flex items-center space-x-1.5">
-        <!-- Dots injected dynamically -->
-      </div>
-
-      <button onclick="nextStory()" class="hover:text-white transition-colors p-1" title="Next Story">
-        <i class="fa-solid fa-chevron-down"></i>
-      </button>
+    <!-- Swipe / Scroll Hint -->
+    <div class="hidden sm:flex items-center space-x-3 text-[11px] text-slate-500">
+      <span class="flex items-center space-x-1">
+        <i class="fa-solid fa-arrow-up-down text-[10px]"></i>
+        <span>DRAG / SWIPE TO NAVIGATE</span>
+      </span>
+      <span>•</span>
+      <span id="storyIndexCounter">1 of 5</span>
     </div>
   </footer>
 
-  <!-- AUTH / SIGN IN MODAL -->
-  <div id="authModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-brand-card border border-brand-border rounded-xl max-w-sm w-full p-6 text-center shadow-2xl relative">
-      <button onclick="closeAuthModal()" class="absolute top-3 right-3 text-gray-500 hover:text-white text-sm">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400">
-        <i class="fa-solid fa-user-lock text-xl"></i>
-      </div>
-      <h3 class="text-lg font-bold text-white mb-1">Account Sign In Required</h3>
-      <p class="text-xs text-gray-400 mb-6">Sign in to unlock personalized tickers, custom AI alerts, and institutional analytics.</p>
-      <button onclick="closeAuthModal()" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-semibold transition-colors">
-        CONTINUE WITH GOOGLE
-      </button>
-    </div>
-  </div>
-
-  <!-- APPLICATION LOGIC & SYNTHESIZER ENGINE -->
   <script>
-    // --- SAMPLE NEWS DATABASE ---
+    // FINANCIAL NEWS DATASET
     const newsFeed = [
       {
-        id: 1,
+        id: "news-1",
         ticker: "NVDA",
-        change: "+8.4%",
-        price: "$138.25",
-        volume: "48.2M",
-        volatility: "High",
         sentiment: "Strong Positive",
-        headline: "NVIDIA Unveils Next-Gen AI Chip Architecture Delivering 5x Processing Efficiency",
-        time: "Just now",
-        body: "NVIDIA announced its newest Blackwell Ultra architecture during today's unexpected keynote. The new silicon architecture significantly reduces training power consumption while boosting throughput for large-scale multi-modal neural network models.",
-        aiSummary: "Extreme bullish catalyst for semiconductor sector. Model projects potential 6-8% upside across hardware supply chains over the next two trading sessions.",
-        aiAction: "OVERWEIGHT Semiconductor Allocations"
-      },
-      {
-        id: 2,
-        ticker: "TSLA",
-        change: "+5.1%",
-        price: "$242.10",
-        volume: "31.8M",
-        volatility: "Very High",
-        sentiment: "Positive",
-        headline: "Tesla Receives Regulatory Approval for Full Autonomous Robotaxi Fleet Deployment",
+        sentimentClass: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
         time: "2 mins ago",
-        body: "State transportation regulators have officially granted Tesla full commercial operation permits for unsupervised driverless ride-hailing services across major metropolitan corridors starting next quarter.",
-        aiSummary: "Strong positive momentum unlock for autonomous vehicle valuations. Removes regulatory overhang that previously discounted robotaxi revenue streams.",
-        aiAction: "ACCUMULATE on minor intraday pullbacks"
+        headline: "NVIDIA Unveils Next-Gen Blackwell Ultra Architecture, Surpassing Analyst AI Compute Benchmarks by 40%",
+        price: "$138.25",
+        change: "+4.2%",
+        volume: "2.4x Avg",
+        confidence: "94%",
+        impact: "High (Tech)",
+        summary: "NVIDIA announced its updated Blackwell Ultra lineup during an unannounced keynote. Early performance metrics demonstrate a 40% jump in LLM training efficiency and significantly reduced energy consumption per token, sparking an immediate rally across semiconductor partners.",
+        aiImpact: [
+          "• <strong>Supply Chain Vector:</strong> TSMC foundry capacity allocation for 3nm nodes expected to increase by 15% through Q4.",
+          "• <strong>Hyperscaler Capex:</strong> Cloud providers (Microsoft, Amazon, Google) likely to adjust FY27 AI infrastructure budgets upward.",
+          "• <strong>Competitor Pressure:</strong> Puts short-term margin pressure on secondary GPU suppliers while cementing enterprise market dominance."
+        ]
       },
       {
-        id: 3,
+        id: "news-2",
         ticker: "AAPL",
-        change: "-0.4%",
-        price: "$224.30",
-        volume: "22.1M",
-        volatility: "Low",
-        sentiment: "Neutral",
-        headline: "Apple Adjusts iPhone Production Supply Orders Amid Balanced Global Demand Metrics",
-        time: "5 mins ago",
-        body: "Supply chain intelligence reports indicate Apple has maintained overall component orders flat month-over-month. Stronger demand for Pro models offsets minor contractions in standard base models.",
-        aiSummary: "Neutral earnings baseline. No immediate volatility expansion expected; stable dividend and buyback flows remain supportive.",
-        aiAction: "HOLD current strategic weightings"
-      },
-      {
-        id: 4,
-        ticker: "XOM",
-        change: "-3.2%",
-        price: "$112.50",
-        volume: "18.5M",
-        volatility: "Medium",
-        sentiment: "Negative",
-        headline: "Global Crude Inventories Rise Unexpectedly as Energy Production Exceeds Forecasts",
-        time: "9 mins ago",
-        body: "International energy agency data reveals crude stockpiles surged by 4.2 million barrels last week, surpassing baseline consensus estimates and pressing energy futures lower.",
-        aiSummary: "Negative short-term pricing pressure across upstream oil and gas producers. Margin compression anticipated if inventory builds persist.",
-        aiAction: "REDUCE tactical energy exposure"
-      },
-      {
-        id: 5,
-        ticker: "INTC",
-        change: "-9.1%",
-        price: "$19.80",
-        volume: "65.4M",
-        volatility: "Extreme",
-        sentiment: "Very Negative",
-        headline: "Intel Delays Next-Gen Fabrication Plant Launch Citing Unforeseen Technical Hurdles",
+        sentiment: "Positive",
+        sentimentClass: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
         time: "14 mins ago",
-        body: "Intel management disclosed a two-quarter postponement for its flagship node fabrication facility. The delay disrupts planned product release timetables for enterprise server chips.",
-        aiSummary: "Severe negative catalyst. Market share erosion risks accelerate toward key foundry competitors.",
-        aiAction: "EXIT / SHORT speculative long positions"
+        headline: "Apple Inks Strategic AI Integration Contract with Leading Enterprise Software Provider for iOS 20",
+        price: "$224.50",
+        change: "+1.8%",
+        volume: "1.2x Avg",
+        confidence: "88%",
+        impact: "Moderate (Consumer)",
+        summary: "Apple has finalized a long-rumored partnership to bring native cloud-native workflow automation directly into Siri and iOS system frameworks. Analysts view this as key to unlocking enterprise smartphone upgrades.",
+        aiImpact: [
+          "• <strong>App Store Revenues:</strong> Revenue share models for enterprise plugins could yield an additional $3.2B annually.",
+          "• <strong>Privacy Hardware:</strong> Accelerates demand for high-RAM iPhone models capable of running local neural engines."
+        ]
+      },
+      {
+        id: "news-3",
+        ticker: "FED / SPY",
+        sentiment: "Neutral",
+        sentimentClass: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
+        time: "32 mins ago",
+        headline: "Federal Reserve Signals Rate Pause as Core Inflation Prints Exactly On Target at 2.1%",
+        price: "4,450.10",
+        change: "0.0%",
+        volume: "1.0x Avg",
+        confidence: "91%",
+        impact: "Macro-Wide",
+        summary: "Federal Reserve officials indicated that benchmark interest rates will remain unchanged through the next quarter. The decision reflects steady labor data and stabilized inflation prints.",
+        aiImpact: [
+          "• <strong>Bond Yields:</strong> 10-Year Treasury yields stabilized around 3.85%, offering short-term clarity for debt markets.",
+          "• <strong>Equities Horizon:</strong> Growth stocks gain valuation tailwinds as discount rate uncertainty subsides."
+        ]
+      },
+      {
+        id: "news-4",
+        ticker: "TSLA",
+        sentiment: "Negative",
+        sentimentClass: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
+        time: "48 mins ago",
+        headline: "Tesla Faces European Regulatory Delay on Full Self-Driving Approval Pending Safety Audit",
+        price: "$210.15",
+        change: "-2.7%",
+        volume: "1.8x Avg",
+        confidence: "86%",
+        impact: "High (Auto/Tech)",
+        summary: "European transport authorities have requested an additional 90-day review period for Autonomous Driving software packages, citing required edge-case safety validations in dense urban environments.",
+        aiImpact: [
+          "• <strong>Revenue Recognition:</strong> Defers roughly $400M in deferred FSD revenue recognition in EMEA regions.",
+          "• <strong>Regional Rollout:</strong> Enables local EV competitors time to launch competing driver-assist suites."
+        ]
+      },
+      {
+        id: "news-5",
+        ticker: "AMZN",
+        sentiment: "Strong Positive",
+        sentimentClass: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+        time: "1 hr ago",
+        headline: "Amazon Web Services Outlines $15 Billion Autonomous Data Center Expansion in Nordic Region",
+        price: "$186.40",
+        change: "+3.1%",
+        volume: "2.1x Avg",
+        confidence: "95%",
+        impact: "High (Cloud)",
+        summary: "AWS has announced massive infrastructure investments focused on zero-carbon, liquid-cooled server facilities designed specifically for generative AI compute workloads in Northern Europe.",
+        aiImpact: [
+          "• <strong>Energy Contracts:</strong> Long-term wind and hydro power purchase agreements secured at favorable long-term tariffs.",
+          "• <strong>Cloud Market Share:</strong> Strengthens AWS's competitive moat in European sovereign data compliance."
+        ]
       }
     ];
 
+    // APPLICATION STATE
     let currentIndex = 0;
-    let detailsExpanded = false;
-    let audioEnabled = true;
+    let isPaused = false;
+    let soundEnabled = true;
+    let isDetailsExpanded = false;
     let autoCycleTimer = null;
-    let delayTimeout1 = null;
-    let delayTimeout2 = null;
-    let delayTimeout3 = null;
+    let progressInterval = null;
+    let progressPercent = 0;
+    const CYCLE_DURATION = 9000; // 9 seconds per story
 
-    // --- WEB AUDIO API SYNTHESIZER ENGINE ---
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    // DOM ELEMENTS
+    const storyCard = document.getElementById('storyCard');
+    const tickerBadge = document.getElementById('tickerBadge');
+    const sentimentTag = document.getElementById('sentimentTag');
+    const storyTime = document.getElementById('storyTime');
+    const storyHeadline = document.getElementById('storyHeadline');
+    const accordionToggleBtn = document.getElementById('accordionToggleBtn');
+    const accordionBtnText = document.getElementById('accordionBtnText');
+    const accordionChevron = document.getElementById('accordionChevron');
+    const expandedDetails = document.getElementById('expandedDetails');
+
+    const metricPrice = document.getElementById('metricPrice');
+    const metricVolume = document.getElementById('metricVolume');
+    const metricConfidence = document.getElementById('metricConfidence');
+    const metricImpact = document.getElementById('metricImpact');
+    const storySummary = document.getElementById('storySummary');
+    const aiImpactText = document.getElementById('aiImpactText');
+
+    const tickerBanner = document.getElementById('tickerBanner');
+    const jumpToLiveBtn = document.getElementById('jumpToLiveBtn');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
+
+    const pauseToggleBtn = document.getElementById('pauseToggleBtn');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const pauseStatusText = document.getElementById('pauseStatusText');
+    const timerProgress = document.getElementById('timerProgress');
+    const storyIndexCounter = document.getElementById('storyIndexCounter');
+
+    // WEB AUDIO API SYNTHESIZER
     let audioCtx = null;
 
     function initAudio() {
       if (!audioCtx) {
-        audioCtx = new AudioCtx();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
     }
 
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      const icon = document.getElementById('soundIcon');
-      if (audioEnabled) {
-        icon.className = "fa-solid fa-volume-high";
-      } else {
-        icon.className = "fa-solid fa-volume-xmark text-red-400";
-      }
-    }
-
-    // High Urgency Alert Sound for New Breaking News
-    function playAlertNewsSound() {
-      if (!audioEnabled) return;
-      initAudio();
+    function playSound(type) {
+      if (!soundEnabled) return;
       try {
-        const now = audioCtx.currentTime;
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc1.type = 'sawtooth';
-        osc2.type = 'sine';
-
-        osc1.frequency.setValueAtTime(880, now); // A5
-        osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.15); // A6
-
-        osc2.frequency.setValueAtTime(1320, now + 0.1);
-        osc2.frequency.exponentialRampToValueAtTime(2640, now + 0.25);
-
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc1.start(now);
-        osc2.start(now + 0.08);
-        osc1.stop(now + 0.35);
-        osc2.stop(now + 0.35);
-      } catch (e) {}
-    }
-
-    // Ascending Sound for Next Story
-    function playNextSound() {
-      if (!audioEnabled) return;
-      initAudio();
-      try {
-        const now = audioCtx.currentTime;
+        initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(450, now);
-        osc.frequency.exponentialRampToValueAtTime(780, now + 0.12);
-
-        gain.gain.setValueAtTime(0.08, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
-        osc.start(now);
-        osc.stop(now + 0.12);
-      } catch (e) {}
-    }
-
-    // Descending Sound for Previous Story
-    function playPrevSound() {
-      if (!audioEnabled) return;
-      initAudio();
-      try {
         const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(780, now);
-        osc.frequency.exponentialRampToValueAtTime(450, now + 0.12);
-
-        gain.gain.setValueAtTime(0.08, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.12);
-      } catch (e) {}
-    }
-
-    // --- RENDER CURRENT NEWS ITEM ---
-    function renderCurrentNews(direction = 'next', isNewAutoNews = false) {
-      const item = newsFeed[currentIndex];
-
-      // Update Live Ticker Text Bar
-      document.getElementById('liveTickerText').textContent = item.headline;
-
-      const card = document.getElementById('newsCard');
-      const headline = document.getElementById('newsHeadline');
-
-      // Trigger Exaggerated Motion & Flash Animation
-      card.classList.remove('anim-headline-next', 'anim-headline-prev');
-      void card.offsetWidth; // Force Reflow
-      card.classList.add(direction === 'next' ? 'anim-headline-next' : 'anim-headline-prev');
-
-      // Update Stock Ticker Badge
-      document.getElementById('stockSymbol').textContent = `$${item.ticker}`;
-      const changeEl = document.getElementById('stockChange');
-      changeEl.textContent = item.change;
-      if (item.change.startsWith('+')) {
-        changeEl.className = "text-emerald-400 font-bold";
-      } else if (item.change.startsWith('-')) {
-        changeEl.className = "text-rose-400 font-bold";
-      } else {
-        changeEl.className = "text-gray-400 font-bold";
-      }
-
-      // Headline & Timestamp
-      headline.textContent = item.headline;
-      document.getElementById('newsTime').textContent = item.time;
-
-      // Reset AI Sentiment Badge to "Analyzing"
-      const aiBadge = document.getElementById('aiSentimentBadge');
-      aiBadge.className = "inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-medium text-gray-400 transition-all duration-300";
-      aiBadge.innerHTML = `<i class="fa-solid fa-microchip animate-spin text-blue-400"></i><span>AI Analyzing market sentiment...</span>`;
-
-      // Clear pending network delay timeouts
-      clearTimeout(delayTimeout1);
-      clearTimeout(delayTimeout2);
-      clearTimeout(delayTimeout3);
-
-      // Simulate 1s AI Delay for Sentiment Rating
-      delayTimeout1 = setTimeout(() => {
-        applySentimentRating(item.sentiment);
-      }, 1000);
-
-      // Populate Expanded Content Data
-      document.getElementById('metricPrice').textContent = item.price;
-      const mChange = document.getElementById('metricChange');
-      mChange.textContent = item.change;
-      mChange.className = item.change.startsWith('+') ? "text-emerald-400 font-semibold text-sm" : "text-rose-400 font-semibold text-sm";
-      document.getElementById('metricVolume').textContent = item.volume;
-      document.getElementById('metricVolatility').textContent = item.volatility;
-
-      document.getElementById('newsBodyText').textContent = item.body;
-      document.getElementById('aiAnalysisSummary').textContent = item.aiSummary;
-      document.getElementById('aiActionText').textContent = item.aiAction;
-
-      // If details section is open, simulate staggered network delays
-      if (detailsExpanded) {
-        triggerDetailsNetworkDelays();
-      }
-
-      updateTimelineDots();
-
-      if (isNewAutoNews) {
-        playAlertNewsSound();
-        card.classList.add('flash-ring');
-        setTimeout(() => card.classList.remove('flash-ring'), 800);
+        if (type === 'next') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'prev') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(700, now);
+          osc.frequency.exponentialRampToValueAtTime(350, now + 0.12);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'alert') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(880, now + 0.08); // A5
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        }
+      } catch (e) {
+        console.warn('Audio playback inhibited', e);
       }
     }
 
-    // --- 5-TIER AI SENTIMENT RATING FORMATTER ---
-    function applySentimentRating(sentiment) {
-      const aiBadge = document.getElementById('aiSentimentBadge');
-      let config = {
-        label: "Neutral",
-        icon: "fa-minus",
-        classes: "bg-gray-900/80 border-gray-700 text-gray-300"
-      };
+    // RENDER STORY DATA
+    function renderStory(index, direction = 'next') {
+      const item = newsFeed[index];
 
-      switch (sentiment) {
-        case "Strong Positive":
-          config = { label: "STRONG POSITIVE", icon: "fa-angles-up", classes: "bg-emerald-950/60 border-emerald-500/50 text-emerald-400" };
-          break;
-        case "Positive":
-          config = { label: "POSITIVE", icon: "fa-angle-up", classes: "bg-teal-950/60 border-teal-500/50 text-teal-300" };
-          break;
-        case "Neutral":
-          config = { label: "NEUTRAL", icon: "fa-minus", classes: "bg-slate-900/80 border-slate-700 text-slate-300" };
-          break;
-        case "Negative":
-          config = { label: "NEGATIVE", icon: "fa-angle-down", classes: "bg-amber-950/60 border-amber-500/50 text-amber-300" };
-          break;
-        case "Very Negative":
-          config = { label: "VERY NEGATIVE", icon: "fa-angles-down", classes: "bg-rose-950/60 border-rose-500/50 text-rose-400" };
-          break;
-      }
+      // Exit animation
+      const exitClass = direction === 'next' ? 'slide-exit-up' : 'slide-exit-down';
+      storyCard.className = `${exitClass} flex flex-col w-full h-full justify-center max-h-[82vh]`;
 
-      aiBadge.className = `inline-flex items-center space-x-2 px-3 py-1 rounded-md border font-mono text-xs font-semibold shadow-sm transition-all duration-300 ${config.classes}`;
-      aiBadge.innerHTML = `<i class="fa-solid ${config.icon}"></i><span>${config.label}</span>`;
-    }
+      setTimeout(() => {
+        // Update Content
+        tickerBadge.textContent = item.ticker;
+        sentimentTag.textContent = item.sentiment;
+        sentimentTag.className = `px-2 py-0.5 rounded text-[11px] font-medium tracking-wide uppercase ${item.sentimentClass}`;
+        storyTime.textContent = item.time;
+        storyHeadline.textContent = item.headline;
 
-    // --- DETAILS ACCORDION TOGGLE & NETWORK DELAY SIMULATION ---
-    function toggleDetails() {
-      detailsExpanded = !detailsExpanded;
-      const drawer = document.getElementById('detailsDrawer');
-      const chevron = document.getElementById('expandChevron');
-      const statusLabel = document.getElementById('expandStatusLabel');
+        metricPrice.innerHTML = item.price;
+        metricVolume.textContent = item.volume;
+        metricConfidence.textContent = item.confidence;
+        metricImpact.textContent = item.impact;
+        storySummary.textContent = item.summary;
+        aiImpactText.innerHTML = item.aiImpact.join('');
 
-      if (detailsExpanded) {
-        drawer.classList.remove('hidden');
-        chevron.style.transform = 'rotate(90deg)';
-        statusLabel.textContent = "EXPANDED";
-        statusLabel.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-blue-900/40 text-blue-300 border border-blue-500/30";
-        triggerDetailsNetworkDelays();
-      } else {
-        drawer.classList.add('hidden');
-        chevron.style.transform = 'rotate(0deg)';
-        statusLabel.textContent = "COLLAPSED";
-        statusLabel.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-gray-800 text-gray-400";
-      }
-    }
+        storyIndexCounter.textContent = `${index + 1} of ${newsFeed.length}`;
 
-    function triggerDetailsNetworkDelays() {
-      // Hide Content, Show Skeletons
-      document.getElementById('stockMetricsSkeleton').classList.remove('hidden');
-      document.getElementById('stockMetricsContent').classList.add('hidden');
+        // Reset details if collapsed
+        if (!isDetailsExpanded) {
+          expandedDetails.classList.add('hidden');
+          accordionBtnText.textContent = "TAP FOR DETAILS & ANALYSIS";
+          accordionChevron.style.transform = "rotate(0deg)";
+        }
 
-      document.getElementById('newsBodySkeleton').classList.remove('hidden');
-      document.getElementById('newsBodyText').classList.add('hidden');
-
-      document.getElementById('aiAnalysisSkeleton').classList.remove('hidden');
-      document.getElementById('aiAnalysisContent').classList.add('hidden');
-
-      // Staggered Network Fetches
-      delayTimeout2 = setTimeout(() => {
-        document.getElementById('stockMetricsSkeleton').classList.add('hidden');
-        document.getElementById('stockMetricsContent').classList.remove('hidden');
-      }, 400);
-
-      delayTimeout3 = setTimeout(() => {
-        document.getElementById('newsBodySkeleton').classList.add('hidden');
-        document.getElementById('newsBodyText').classList.remove('hidden');
-
-        document.getElementById('aiAnalysisSkeleton').classList.add('hidden');
-        document.getElementById('aiAnalysisContent').classList.remove('hidden');
-      }, 800);
-    }
-
-    // --- TIMELINE DOTS ---
-    function updateTimelineDots() {
-      const container = document.getElementById('timelineDots');
-      container.innerHTML = '';
-      newsFeed.forEach((_, idx) => {
-        const dot = document.createElement('button');
-        dot.onclick = () => jumpToStory(idx);
-        dot.className = idx === currentIndex 
-          ? "w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50 transition-all" 
-          : "w-1.5 h-1.5 rounded-full bg-gray-700 hover:bg-gray-500 transition-all";
-        container.appendChild(dot);
-      });
-    }
-
-    // --- NAVIGATION CONTROLS ---
-    function nextStory() {
-      currentIndex = (currentIndex + 1) % newsFeed.length;
-      playNextSound();
-      renderCurrentNews('next');
-      resetAutoCycle();
-    }
-
-    function prevStory() {
-      currentIndex = (currentIndex - 1 + newsFeed.length) % newsFeed.length;
-      playPrevSound();
-      renderCurrentNews('prev');
-      resetAutoCycle();
-    }
-
-    function jumpToStory(index) {
-      if (index === currentIndex) return;
-      const dir = index > currentIndex ? 'next' : 'prev';
-      currentIndex = index;
-      playNextSound();
-      renderCurrentNews(dir);
-      resetAutoCycle();
-    }
-
-    function jumpToLiveNews() {
-      jumpToStory(0);
-    }
-
-    // --- AUTOMATIC 20-SECOND CYCLE ---
-    function startAutoCycle() {
-      autoCycleTimer = setInterval(() => {
-        currentIndex = (currentIndex + 1) % newsFeed.length;
-        renderCurrentNews('next', true);
-      }, 20000);
-    }
-
-    function resetAutoCycle() {
-      clearInterval(autoCycleTimer);
-      startAutoCycle();
-    }
-
-    // --- SMART TOUCH & MOUSE DRAG GESTURE ENGINE ---
-    let startY = 0;
-    let currentY = 0;
-    let isDragging = false;
-
-    // Helper: Check if event target is inside expanded content area
-    function isInExpandedDetails(target) {
-      return detailsExpanded && !!target.closest('.expanded-scroll-area');
-    }
-
-    function handleTouchStart(e) {
-      if (isInExpandedDetails(e.target)) return; // Allow normal text scrolling
-      isDragging = true;
-      startY = e.touches ? e.touches[0].clientY : e.clientY;
-    }
-
-    function handleTouchMove(e) {
-      if (!isDragging || isInExpandedDetails(e.target)) return;
-      currentY = e.touches ? e.touches[0].clientY : e.clientY;
-      const diffY = currentY - startY;
-
-      const card = document.getElementById('newsCard');
-      card.style.transform = `translateY(${diffY * 0.25}px)`;
-
-      const feedback = document.getElementById('dragFeedback');
-      const feedbackText = document.getElementById('dragFeedbackText');
-
-      if (Math.abs(diffY) > 30) {
-        feedback.style.opacity = '1';
-        feedbackText.textContent = diffY < 0 ? "RELEASE TO NEXT STORY" : "RELEASE TO PREVIOUS STORY";
-      } else {
-        feedback.style.opacity = '0';
-      }
-    }
-
-    function handleTouchEnd(e) {
-      if (!isDragging) return;
-      isDragging = false;
-      const card = document.getElementById('newsCard');
-      card.style.transform = 'translateY(0px)';
-      document.getElementById('dragFeedback').style.opacity = '0';
-
-      const diffY = currentY - startY;
-      if (Math.abs(diffY) > 60) {
-        if (diffY < 0) {
-          nextStory();
+        // Update Ticker Banner visibility
+        if (currentIndex !== 0 || isPaused) {
+          tickerBanner.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
         } else {
-          prevStory();
+          tickerBanner.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+        }
+
+        // Entrance animation
+        storyCard.className = 'slide-enter flex flex-col w-full h-full justify-center max-h-[82vh]';
+        requestAnimationFrame(() => {
+          storyCard.className = 'slide-active flex flex-col w-full h-full justify-center max-h-[82vh]';
+        });
+
+      }, 250);
+    }
+
+    // NAVIGATION CONTROLS
+    function goToNextStory() {
+      if (currentIndex < newsFeed.length - 1) {
+        currentIndex++;
+        playSound('next');
+        renderStory(currentIndex, 'next');
+      } else {
+        // Loop back to live top
+        currentIndex = 0;
+        playSound('alert');
+        renderStory(currentIndex, 'next');
+      }
+      resetTimer();
+    }
+
+    function goToPrevStory() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        playSound('prev');
+        renderStory(currentIndex, 'prev');
+      }
+      resetTimer();
+    }
+
+    // TIMER & PROGRESS BAR
+    function startTimer() {
+      if (isPaused) return;
+      clearInterval(progressInterval);
+      progressPercent = 0;
+      const stepTime = 100;
+      const totalSteps = CYCLE_DURATION / stepTime;
+      
+      progressInterval = setInterval(() => {
+        if (!isPaused && !isDetailsExpanded) {
+          progressPercent += (100 / totalSteps);
+          timerProgress.style.width = `${Math.min(progressPercent, 100)}%`;
+
+          if (progressPercent >= 100) {
+            goToNextStory();
+          }
+        }
+      }, stepTime);
+    }
+
+    function resetTimer() {
+      clearInterval(progressInterval);
+      timerProgress.style.width = '0%';
+      startTimer();
+    }
+
+    function togglePause(forcePause = null) {
+      if (forcePause !== null) {
+        isPaused = forcePause;
+      } else {
+        isPaused = !isPaused;
+      }
+
+      if (isPaused) {
+        pauseIcon.className = 'fa-solid fa-play text-xs';
+        pauseStatusText.textContent = 'Paused';
+        tickerBanner.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+      } else {
+        pauseIcon.className = 'fa-solid fa-pause text-xs';
+        pauseStatusText.textContent = 'Auto Play';
+        if (currentIndex === 0) {
+          tickerBanner.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+        }
+        startTimer();
+      }
+    }
+
+    // ACCORDION TOGGLE
+    function toggleAccordion() {
+      isDetailsExpanded = !isDetailsExpanded;
+      initAudio();
+
+      if (isDetailsExpanded) {
+        expandedDetails.classList.remove('hidden');
+        accordionBtnText.textContent = "HIDE DETAILS";
+        accordionChevron.style.transform = "rotate(180deg)";
+        togglePause(true); // Pause auto-play when user expands details
+      } else {
+        expandedDetails.classList.add('hidden');
+        accordionBtnText.textContent = "TAP FOR DETAILS & ANALYSIS";
+        accordionChevron.style.transform = "rotate(0deg)";
+      }
+    }
+
+    accordionToggleBtn.addEventListener('click', toggleAccordion);
+    storyHeadline.addEventListener('click', toggleAccordion);
+
+    // JUMP TO LIVE BUTTON
+    jumpToLiveBtn.addEventListener('click', () => {
+      currentIndex = 0;
+      togglePause(false);
+      playSound('alert');
+      renderStory(0, 'prev');
+    });
+
+    // SOUND TOGGLE
+    soundToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      if (soundEnabled) {
+        soundIcon.className = 'fa-solid fa-volume-high text-sm';
+        playSound('next');
+      } else {
+        soundIcon.className = 'fa-solid fa-volume-xmark text-sm text-slate-600';
+      }
+    });
+
+    // PAUSE BUTTON
+    pauseToggleBtn.addEventListener('click', () => {
+      togglePause();
+    });
+
+    // TOUCH & DRAG SWIPE NAVIGATION WITH SCROLL ISOLATION
+    let touchStartY = 0;
+    let touchEndY = 0;
+    const minSwipeDistance = 45;
+
+    window.addEventListener('touchstart', (e) => {
+      // SCROLL ISOLATION: Ignore swipe gesture if inside expanded scroll area
+      if (e.target.closest('.expanded-scroll-area')) return;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (e.target.closest('.expanded-scroll-area')) return;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipe();
+    }, { passive: true });
+
+    // MOUSE WHEEL DESKTOP NAVIGATION
+    let isWheelCoolingDown = false;
+    window.addEventListener('wheel', (e) => {
+      if (e.target.closest('.expanded-scroll-area')) return; // Allow internal scrolling
+      
+      if (isWheelCoolingDown) return;
+
+      if (e.deltaY > 30) {
+        goToNextStory();
+        triggerWheelCooldown();
+      } else if (e.deltaY < -30) {
+        goToPrevStory();
+        triggerWheelCooldown();
+      }
+    }, { passive: true });
+
+    function triggerWheelCooldown() {
+      isWheelCoolingDown = true;
+      setTimeout(() => {
+        isWheelCoolingDown = false;
+      }, 600);
+    }
+
+    function handleSwipe() {
+      const distance = touchStartY - touchEndY;
+      if (Math.abs(distance) > minSwipeDistance) {
+        if (distance > 0) {
+          // Swiped Up -> Next Story
+          goToNextStory();
+        } else {
+          // Swiped Down -> Prev Story
+          goToPrevStory();
         }
       }
-      startY = 0;
-      currentY = 0;
     }
 
-    // Attach Gesture Listeners to Dashboard Container
-    const mainArea = document.getElementById('mainContainer');
-    mainArea.addEventListener('touchstart', handleTouchStart, { passive: true });
-    mainArea.addEventListener('touchmove', handleTouchMove, { passive: true });
-    mainArea.addEventListener('touchend', handleTouchEnd);
+    // INITIALIZATION
+    window.onload = function() {
+      renderStory(0);
+      startTimer();
+    };
 
-    mainArea.addEventListener('mousedown', handleTouchStart);
-    window.addEventListener('mousemove', handleTouchMove);
-    window.addEventListener('mouseup', handleTouchEnd);
-
-    // Keyboard Arrow Navigation
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') prevStory();
-      if (e.key === 'ArrowDown') nextStory();
-    });
-
-    // Auth Modal Triggers
-    function triggerAuthModal() {
-      document.getElementById('authModal').classList.remove('hidden');
-    }
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.add('hidden');
-    }
-
-    // --- INITIALIZATION ---
-    window.addEventListener('DOMContentLoaded', () => {
-      renderCurrentNews('next');
-      startAutoCycle();
-    });
   </script>
 </body>
 </html>
