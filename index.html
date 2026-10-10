@@ -1,739 +1,811 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Minimalist Flash News</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimalist Breaking News Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #030305;
-            color: #e5e7eb;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              black: '#070709',
+              card: '#0f1015',
+              border: '#1f222e',
+              muted: '#8b92a5',
+              accent: '#3b82f6',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+            }
+          }
         }
+      }
+    }
+  </script>
 
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
+  <style>
+    body {
+      background-color: #070709;
+      color: #f3f4f6;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
 
-        /* Exaggerated News Flash Ring Effect */
-        @keyframes flash-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-            50% { box-shadow: 0 0 0 25px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .flash-ring {
-            animation: flash-pulse 0.8s cubic-bezier(0, 0, 0.2, 1);
-        }
+    /* Custom Scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 16, 21, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2a2e3d;
+      border-radius: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #3b82f6;
+    }
 
-        /* Exaggerated Headline Shift / Scale Animation */
-        @keyframes headlineChangeNext {
-            0% { transform: translateY(40px) scale(0.92) rotate(-1.5deg); opacity: 0; filter: blur(12px); }
-            50% { transform: translateY(-6px) scale(1.02) rotate(0.5deg); opacity: 0.9; filter: blur(2px); }
-            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
-        }
+    /* Shimmer Effect for Loading Skeletons */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-box {
+      background: linear-gradient(90deg, #13151c 25%, #1f2330 37%, #13151c 63%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
 
-        @keyframes headlineChangePrev {
-            0% { transform: translateY(-40px) scale(0.92) rotate(1.5deg); opacity: 0; filter: blur(12px); }
-            50% { transform: translateY(6px) scale(1.02) rotate(-0.5deg); opacity: 0.9; filter: blur(2px); }
-            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
-        }
+    /* Headline Change Animations */
+    .anim-headline-next {
+      animation: headlineNext 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .anim-headline-prev {
+      animation: headlinePrev 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
-        .anim-headline-next {
-            animation: headlineChangeNext 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+    @keyframes headlineNext {
+      0% { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(4px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes headlinePrev {
+      0% { opacity: 0; transform: translateY(-18px) scale(0.98); filter: blur(4px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
 
-        .anim-headline-prev {
-            animation: headlineChangePrev 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+    /* Visual Flash Pulse on News Update */
+    .flash-ring {
+      animation: ringPulse 0.8s ease-out 1;
+    }
+    @keyframes ringPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
 
-        /* High-contrast neon pop overlay */
-        @keyframes neonGlow {
-            0% { background-color: rgba(16, 185, 129, 0.25); }
-            100% { background-color: transparent; }
-        }
-        .flash-bg-glow {
-            animation: neonGlow 0.9s ease-out forwards;
-        }
-
-        /* Skeleton shimmer animation */
-        @keyframes pulse-subtle {
-            0%, 100% { opacity: 0.15; }
-            50% { opacity: 0.45; }
-        }
-        .animate-skeleton {
-            animation: pulse-subtle 1.1s infinite ease-in-out;
-        }
-
-        /* Expand/Collapse Smooth Container */
-        .expand-container {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .expand-container.is-expanded {
-            grid-template-rows: 1fr;
-        }
-        .expand-content {
-            overflow: hidden;
-        }
-
-        /* Top Ticker Slide Animation */
-        @keyframes slideDownBar {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .ticker-slide-in {
-            animation: slideDownBar 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 9999px;
-        }
-    </style>
+    /* Pulse Glow for Live Dot */
+    .live-pulse {
+      animation: livePulse 1.8s infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-900 selection:text-white antialiased overflow-hidden">
+<body class="min-h-screen flex flex-col justify-between font-sans antialiased text-gray-200 selection:bg-blue-500 selection:text-white">
 
-    <!-- Top Minimal Navigation -->
-    <header class="w-full max-w-2xl mx-auto px-6 pt-5 pb-3 flex items-center justify-between text-xs font-mono text-gray-500 border-b border-gray-900 z-20 relative">
-        <div class="flex items-center space-x-2.5">
-            <span id="live-indicator-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            <span id="live-indicator-text" class="tracking-widest uppercase font-bold text-gray-300">FLASH NEWS</span>
-        </div>
-
-        <div class="flex items-center space-x-4">
-            <button id="sound-btn" onclick="toggleSound()" class="hover:text-gray-300 transition flex items-center space-x-1.5">
-                <i id="sound-icon" class="fa-solid fa-volume-high text-emerald-400 text-[11px]"></i>
-                <span id="sound-text" class="text-[10px] font-semibold">SOUND ON</span>
-            </button>
-            <span class="text-gray-800">•</span>
-            <button onclick="alert('Redirecting to Sign In...')" title="User Sign In" class="hover:text-white text-gray-400 transition flex items-center space-x-1.5">
-                <i class="fa-regular fa-circle-user text-base"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Modern One-Liner Live Ticker Bar (Directly below navbar when inspecting history) -->
-    <div id="live-ticker-bar" class="hidden w-full max-w-2xl mx-auto px-6 py-2.5 bg-gray-950/95 border-b border-emerald-500/40 backdrop-blur-xl z-20 ticker-slide-in">
-        <div class="flex items-center justify-between text-xs font-mono">
-            <div onclick="jumpToLatest()" class="flex items-center space-x-3 cursor-pointer group flex-1 pr-4 overflow-hidden">
-                <span class="px-2 py-0.5 rounded bg-red-500/20 border border-red-500/50 text-[10px] font-bold text-red-400 uppercase tracking-widest animate-pulse">NEW FLASH</span>
-                <span id="ticker-bar-text" class="text-gray-200 truncate group-hover:text-emerald-300 transition">New story arriving live...</span>
-            </div>
-            <button onclick="jumpToLatest()" class="flex items-center space-x-1.5 text-emerald-400 hover:text-emerald-300 font-semibold shrink-0 pl-2 border-l border-gray-800">
-                <span class="text-[10px] tracking-wider uppercase">JUMP TO LIVE</span>
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-        </div>
+  <!-- TOP MAIN NAVBAR -->
+  <header class="w-full border-b border-brand-border/60 bg-brand-black/90 backdrop-blur-md sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-pulse"></div>
+      <span class="font-mono text-xs font-semibold tracking-wider text-gray-300 uppercase">AURA NEWS STREAM</span>
     </div>
 
-    <!-- Drag Cue Indicator Pill -->
-    <div id="drag-cue" class="fixed top-20 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity duration-200 pointer-events-none">
-        <div class="px-4 py-1.5 rounded-full bg-gray-900/95 border border-emerald-500/40 text-[11px] font-mono text-gray-200 shadow-2xl flex items-center space-x-2 backdrop-blur-md">
-            <i id="drag-cue-icon" class="fa-solid fa-arrow-up text-[11px] text-emerald-400"></i>
-            <span id="drag-cue-text">SWIPE UP FOR NEXT STORY</span>
-        </div>
+    <div class="flex items-center space-x-4">
+      <!-- Mute / Unmute Audio Toggle -->
+      <button id="soundToggleBtn" onclick="toggleAudio()" class="text-gray-400 hover:text-white transition-colors text-sm p-1.5 rounded-lg hover:bg-brand-card border border-transparent hover:border-brand-border" title="Toggle Sound">
+        <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+      </button>
+
+      <!-- User Avatar Sign-in Trigger -->
+      <button onclick="triggerAuthModal()" class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-brand-card border border-transparent hover:border-brand-border">
+        <i class="fa-regular fa-circle-user text-lg"></i>
+        <span class="text-xs font-mono hidden sm:inline-block">SIGN IN</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SECONDARY LIVE NEWS TICKER BAR (Shown below top navbar) -->
+  <div id="liveTickerBar" class="w-full bg-blue-950/30 border-b border-blue-500/20 px-4 py-2 flex items-center justify-between transition-all duration-300">
+    <div class="flex items-center space-x-2 overflow-hidden mr-3">
+      <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
+        LIVE BREAKING
+      </span>
+      <p id="liveTickerText" class="text-xs text-gray-300 truncate font-sans">
+        Initializing high-impact intelligence feed...
+      </p>
+    </div>
+    <button onclick="jumpToLiveNews()" class="shrink-0 text-[11px] font-mono text-blue-400 hover:text-blue-300 flex items-center space-x-1 underline underline-offset-2">
+      <span>JUMP TO LIVE</span>
+      <i class="fa-solid fa-arrow-right text-[10px]"></i>
+    </button>
+  </div>
+
+  <!-- MAIN DASHBOARD CONTAINER -->
+  <main id="mainContainer" class="flex-1 max-w-4xl w-full mx-auto px-4 md:px-6 py-6 md:py-10 flex flex-col justify-center relative">
+    
+    <!-- Drag Visual Feedback Banner -->
+    <div id="dragFeedback" class="opacity-0 transition-opacity duration-200 pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 bg-brand-border/90 border border-gray-700 text-gray-300 px-4 py-1.5 rounded-full text-xs font-mono tracking-wide z-30 shadow-xl">
+      <span id="dragFeedbackText">DRAG TO NAVIGATE</span>
     </div>
 
-    <!-- Main Interactive Stage for Touch/Mouse Drag -->
-    <main id="swipe-stage" class="w-full max-w-2xl mx-auto px-6 py-4 flex-1 flex flex-col justify-center cursor-grab active:cursor-grabbing select-none relative overflow-y-auto">
-
-        <!-- News Card Container with Glow Overlay -->
-        <div id="news-card-box" class="relative rounded-2xl p-6 border border-gray-900 bg-gray-950/60 transition-all duration-300 space-y-5 backdrop-blur-sm">
-            <div id="glow-overlay" class="absolute inset-0 rounded-2xl pointer-events-none"></div>
-
-            <!-- Meta Row: Stock Ticker + AI Sentiment Tag -->
-            <div class="flex flex-wrap items-center gap-2.5 relative z-10">
-                <div id="ticker-badge" class="px-3 py-1 rounded-md bg-gray-900 border border-emerald-500/40 font-mono text-xs font-bold text-white flex items-center space-x-1.5 transition-all">
-                    <i id="ticker-icon" class="fa-solid fa-arrow-trend-up text-emerald-400 text-[10px]"></i>
-                    <span id="news-ticker">$NVDA +8.4%</span>
-                </div>
-
-                <div id="ai-tag" class="px-3 py-1 rounded-md bg-gray-900/80 border border-gray-800 font-mono text-xs text-gray-400 flex items-center space-x-1.5 transition-all">
-                    <i class="fa-solid fa-microchip animate-spin text-[10px] text-gray-500"></i>
-                    <span>AI Analyzing...</span>
-                </div>
-
-                <span id="news-category" class="text-[10px] font-mono text-gray-500 ml-auto uppercase tracking-widest font-semibold">
-                    MARKETS
-                </span>
-            </div>
-
-            <!-- Exaggerated Animated Headline Block -->
-            <div id="headline-container" class="space-y-3 relative z-10">
-                <h1 id="news-headline" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-snug">
-                    Loading live feed...
-                </h1>
-                <p id="news-summary" class="text-sm sm:text-base text-gray-400 leading-relaxed font-normal">
-                    Establishing network connection...
-                </p>
-            </div>
-
-            <!-- In-Place Expand Mini Bar -->
-            <div class="pt-2 relative z-10">
-                <button id="mini-bar-btn" onclick="toggleDetailsInline()" class="w-full py-3 px-4 rounded-xl bg-gray-900/90 hover:bg-gray-800/90 border border-gray-800/80 hover:border-emerald-500/40 text-xs font-mono text-gray-300 hover:text-white flex items-center justify-between transition-all shadow-lg group">
-                    <div class="flex items-center space-x-2.5">
-                        <i id="mini-bar-sparkle" class="fa-solid fa-layer-group text-emerald-400 text-[11px] group-hover:scale-110 transition-transform"></i>
-                        <span id="mini-bar-label" class="font-semibold tracking-wide">TAP TO EXPAND DETAILS / METRICS & ANALYSIS</span>
-                    </div>
-                    <i id="mini-bar-arrow" class="fa-solid fa-chevron-down text-[11px] text-gray-500 group-hover:text-emerald-400 transition-transform duration-300"></i>
-                </button>
-            </div>
-
-            <!-- Expand-In-Place Accordion Drawer -->
-            <div id="expand-drawer" class="expand-container relative z-10">
-                <div class="expand-content">
-                    <div class="pt-4 border-t border-gray-900 space-y-5 text-xs font-mono">
-                        
-                        <!-- Section 1: Stock Snapshot Metrics -->
-                        <div class="space-y-1.5">
-                            <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">STOCK METRICS & SNAPSHOT</div>
-                            <div id="stock-content" class="min-h-[42px]"></div>
-                        </div>
-
-                        <!-- Section 2: Full News Body -->
-                        <div class="space-y-1.5">
-                            <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">FULL ARTICLE BODY</div>
-                            <div id="body-content" class="min-h-[48px] max-h-[160px] overflow-y-auto pr-1"></div>
-                        </div>
-
-                        <!-- Section 3: Deep AI Strategic Analysis -->
-                        <div class="space-y-1.5">
-                            <div class="text-[10px] text-purple-400/90 uppercase tracking-widest font-bold">DEEP AI STRATEGIC ANALYSIS</div>
-                            <div id="analysis-content" class="min-h-[40px]"></div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
+    <!-- NEWS CARD CONTENT CONTAINER -->
+    <div id="newsCard" class="transition-transform duration-150 ease-out">
+      
+      <!-- TOP METADATA ROW: Ticker Badge & AI Sentiment Tag -->
+      <div class="flex flex-wrap items-center gap-3 mb-4">
+        <!-- Stock Ticker Badge -->
+        <div id="stockBadge" class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-semibold shadow-sm">
+          <span id="stockSymbol" class="text-white">---</span>
+          <span id="stockChange" class="text-gray-400">---</span>
         </div>
 
-    </main>
-
-    <!-- Minimal Footer Controls -->
-    <footer class="w-full max-w-2xl mx-auto px-6 py-4 font-mono text-gray-500 border-t border-gray-900 flex items-center justify-between z-20">
-        <div class="flex items-center space-x-3 text-xs">
-            <button onclick="prevStory(true)" title="Previous News (Swipe Down)" class="hover:text-white text-gray-400 transition p-1 flex items-center space-x-1.5">
-                <i class="fa-solid fa-chevron-up text-[10px]"></i>
-                <span class="text-[10px]">PREV</span>
-            </button>
-            <button onclick="nextStory(true)" title="Next News (Swipe Up)" class="hover:text-white text-gray-400 transition p-1 flex items-center space-x-1.5">
-                <span class="text-[10px]">NEXT</span>
-                <i class="fa-solid fa-chevron-down text-[10px]"></i>
-            </button>
+        <!-- AI Sentiment Tag (Updates after 1s delay) -->
+        <div id="aiSentimentBadge" class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-medium text-gray-400 transition-all duration-300">
+          <i class="fa-solid fa-microchip animate-spin text-blue-400"></i>
+          <span id="aiSentimentText">AI Analyzing market sentiment...</span>
         </div>
+      </div>
 
-        <div id="story-dots" class="flex items-center space-x-2"></div>
+      <!-- MAIN HEADLINE -->
+      <h1 id="newsHeadline" class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight mb-4 transition-all">
+        Loading breaking news update...
+      </h1>
 
-        <div class="flex items-center space-x-2">
-            <button id="pause-toggle-btn" onclick="togglePauseManual()" class="text-[10px] text-gray-500 hover:text-gray-300 transition uppercase tracking-wider">
-                <span id="pause-status-text">AUTO CYCLE</span>
-            </button>
-        </div>
-    </footer>
+      <!-- TIMESTAMP & TIME AGO -->
+      <div class="flex items-center space-x-2 font-mono text-xs text-brand-muted mb-6">
+        <i class="fa-regular fa-clock"></i>
+        <span id="newsTime">Just now</span>
+      </div>
 
-    <script>
-        const newsItems = [
-            {
-                category: "SEMICONDUCTORS",
-                ticker: "$NVDA +8.4%",
-                symbolOnly: "$NVDA",
-                isPositive: true,
-                sentiment: "Strong Positive",
-                headline: "Next-Gen Quantum AI Chip Achieves 100x Efficiency in Benchmark",
-                summary: "Monolithic photonic architecture operating at room temperatures triggers heavy institutional volume.",
-                stockData: { symbol: "NVDA / NASDAQ", price: "$142.85", change: "+8.42%", volume: "84.2M", insight: "Clean technical breakout above 50-day MA with record volume surge." },
-                newsBody: "Silicon Valley developers demonstrated a revolutionary optical compute chip producing 100x higher performance per watt than current GPUs. Key cloud providers initiated initial allocations for upcoming Q4 deployments.",
-                analysis: "<strong>Key Driver:</strong> Resolves power consumption bottlenecks across hyperscale clusters.<br><strong>Market Impact:</strong> Accelerates enterprise infrastructure investment and reinforces market valuation leadership."
-            },
-            {
-                category: "AUTOMOTIVE",
-                ticker: "$TSLA +5.1%",
-                symbolOnly: "$TSLA",
-                isPositive: true,
-                sentiment: "Positive",
-                headline: "Autonomous Taxi Fleet Cleared for Unrestricted Multi-City Launch",
-                summary: "Regulators grant Level 5 autonomous operating permits across 12 metropolitan hubs.",
-                stockData: { symbol: "TSLA / NASDAQ", price: "$264.10", change: "+5.15%", volume: "62.8M", insight: "Significant upside momentum following regulatory clearance." },
-                newsBody: "Transportation safety boards approved commercial operation of driverless fleets across 12 primary urban centers starting midnight nationwide.",
-                analysis: "<strong>Key Driver:</strong> Commercial transition toward high-margin software subscriptions.<br><strong>Market Impact:</strong> Long-term margin expansion across autonomous urban transit."
-            },
-            {
-                category: "CYBERSECURITY",
-                ticker: "$CRWD +0.1%",
-                symbolOnly: "$CRWD",
-                isPositive: true,
-                sentiment: "Neutral",
-                headline: "Zero-Trust Protocol Mandated After Financial Network Stress Test",
-                summary: "Cybersecurity agencies advise banking networks to adopt post-quantum encryption standards.",
-                stockData: { symbol: "CRWD / NASDAQ", price: "$310.50", change: "+0.12%", volume: "18.4M", insight: "Consolidation near key historical moving average." },
-                newsBody: "Federal regulatory agencies issued updated security requirements encouraging financial institutions to integrate post-quantum security protocols immediately.",
-                analysis: "<strong>Key Driver:</strong> Establishes baseline recurring enterprise revenues.<br><strong>Market Impact:</strong> Neutral short-term earnings impact with strong long-term customer retention."
-            },
-            {
-                category: "ENERGY",
-                ticker: "$XOM -1.8%",
-                symbolOnly: "$XOM",
-                isPositive: false,
-                sentiment: "Negative",
-                headline: "Commercial Fusion Reactor Delivers Continuous Power to Municipal Grid",
-                summary: "Engineers confirm 48 consecutive hours of continuous net-positive clean energy output.",
-                stockData: { symbol: "XOM / NYSE", price: "$114.20", change: "-1.82%", volume: "24.1M", insight: "Institutional rotation toward next-gen clean energy alternatives." },
-                newsBody: "A magnetic fusion energy facility sustained continuous net-positive energy generation over two days, delivering 1.4x surplus power into municipal distribution channels.",
-                analysis: "<strong>Key Driver:</strong> Technology disruption risks to traditional fossil fuel base demand.<br><strong>Market Impact:</strong> Capital reallocation toward alternative energy providers."
-            },
-            {
-                category: "MACROECONOMICS",
-                ticker: "$SPY -4.2%",
-                symbolOnly: "$SPY",
-                isPositive: false,
-                sentiment: "Very Negative",
-                headline: "Supply Chain Restrictions Cause Broad Risk-Off Market Pullback",
-                summary: "Unexpected export caps on critical raw metals trigger heavy risk-averse selling.",
-                stockData: { symbol: "SPY / NYSE", price: "$552.40", change: "-4.25%", volume: "142.8M", insight: "Elevated trading volume accompanying volatility index spikes." },
-                newsBody: "International trade limits on critical mineral exports came into effect early today, creating immediate supply chain uncertainty across global tech hardware manufacturers.",
-                analysis: "<strong>Key Driver:</strong> Liquidity contraction and profit margin compression.<br><strong>Market Impact:</strong> Heightened multi-week market volatility across growth sectors."
-            }
-        ];
+      <!-- INLINE EXPANDABLE DETAILS MINI BAR -->
+      <div class="mt-6 border-t border-brand-border/80 pt-4">
+        <button id="expandToggleBtn" onclick="toggleDetails()" class="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-brand-card hover:bg-brand-border/40 border border-brand-border text-left transition-all group">
+          <div class="flex items-center space-x-3">
+            <i id="expandChevron" class="fa-solid fa-chevron-right text-xs text-blue-400 transition-transform duration-300"></i>
+            <span class="font-mono text-xs font-semibold tracking-wider text-gray-300 group-hover:text-white uppercase">
+              TAP TO EXPAND DETAILS / METRICS & ANALYSIS
+            </span>
+          </div>
+          <span id="expandStatusLabel" class="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-800 text-gray-400">
+            COLLAPSED
+          </span>
+        </button>
 
-        const sentimentMap = {
-            "Strong Positive": { label: "Strong Positive", style: "bg-emerald-950/90 border-emerald-500/60 text-emerald-400", icon: "fa-solid fa-angles-up text-emerald-400" },
-            "Positive": { label: "Positive", style: "bg-teal-950/90 border-teal-500/60 text-teal-400", icon: "fa-solid fa-angle-up text-teal-400" },
-            "Neutral": { label: "Neutral", style: "bg-gray-900 border-gray-700 text-gray-300", icon: "fa-solid fa-minus text-gray-400" },
-            "Negative": { label: "Negative", style: "bg-amber-950/90 border-amber-500/60 text-amber-400", icon: "fa-solid fa-angle-down text-amber-400" },
-            "Very Negative": { label: "Very Negative", style: "bg-rose-950/90 border-rose-500/60 text-rose-400", icon: "fa-solid fa-angles-down text-rose-400" }
-        };
-
-        let currentIndex = 0;
-        let latestNewsIndex = 0;
-        let cycleTimer = null;
-        let activeTimeouts = [];
-        let soundEnabled = true;
-        let isPaused = false;
-        let detailsExpanded = false;
-        let detailsLoadedForIndex = -1;
-
-        // Web Audio Engine
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function ensureAudioContext() {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        function playAlertNewsSound() {
-            if (!soundEnabled) return;
-            try {
-                ensureAudioContext();
-                const now = audioCtx.currentTime;
-                
-                const osc1 = audioCtx.createOscillator();
-                const gain1 = audioCtx.createGain();
-                osc1.type = 'triangle';
-                osc1.frequency.setValueAtTime(880, now);
-                osc1.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
-                gain1.gain.setValueAtTime(0.25, now);
-                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-                osc1.connect(gain1);
-                gain1.connect(audioCtx.destination);
-                osc1.start(now);
-                osc1.stop(now + 0.15);
-
-                const osc2 = audioCtx.createOscillator();
-                const gain2 = audioCtx.createGain();
-                osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(1760, now + 0.08);
-                osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.20);
-                gain2.gain.setValueAtTime(0.3, now + 0.08);
-                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-                osc2.connect(gain2);
-                gain2.connect(audioCtx.destination);
-                osc2.start(now + 0.08);
-                osc2.stop(now + 0.28);
-            } catch (e) {}
-        }
-
-        function playNextSound() {
-            if (!soundEnabled) return;
-            try {
-                ensureAudioContext();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(450, now);
-                osc.frequency.exponentialRampToValueAtTime(850, now + 0.08);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.09);
-            } catch (e) {}
-        }
-
-        function playPrevSound() {
-            if (!soundEnabled) return;
-            try {
-                ensureAudioContext();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(850, now);
-                osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.09);
-            } catch (e) {}
-        }
-
-        function playExpandSound(isOpening) {
-            if (!soundEnabled) return;
-            try {
-                ensureAudioContext();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                const startFreq = isOpening ? 320 : 750;
-                const endFreq = isOpening ? 750 : 320;
-                osc.frequency.setValueAtTime(startFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.11);
-            } catch (e) {}
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('sound-icon');
-            const text = document.getElementById('sound-text');
-            if (soundEnabled) {
-                icon.className = "fa-solid fa-volume-high text-emerald-400 text-[11px]";
-                text.textContent = "SOUND ON";
-                playAlertNewsSound();
-            } else {
-                icon.className = "fa-solid fa-volume-xmark text-[11px]";
-                text.textContent = "MUTE";
-            }
-        }
-
-        function renderDots() {
-            const container = document.getElementById('story-dots');
-            container.innerHTML = newsItems.map((_, i) => `
-                <button onclick="goToStory(${i}, true)" title="Story ${i+1}" class="w-2 h-2 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-white scale-125' : 'bg-gray-800 hover:bg-gray-600'}">
-                </button>
-            `).join('');
-        }
-
-        function clearScheduledUpdates() {
-            activeTimeouts.forEach(t => clearTimeout(t));
-            activeTimeouts = [];
-        }
-
-        function triggerExaggeratedAnimation(direction) {
-            const headlineBlock = document.getElementById('headline-container');
-            const cardBox = document.getElementById('news-card-box');
-            const glowOverlay = document.getElementById('glow-overlay');
-
-            // Apply headline directional shift
-            headlineBlock.classList.remove('anim-headline-next', 'anim-headline-prev');
-            void headlineBlock.offsetWidth; // Trigger reflow
-            if (direction === 'prev') {
-                headlineBlock.classList.add('anim-headline-prev');
-            } else {
-                headlineBlock.classList.add('anim-headline-next');
-            }
-
-            // Exaggerated ring flash and background glow
-            cardBox.classList.remove('flash-ring');
-            glowOverlay.classList.remove('flash-bg-glow');
-            void cardBox.offsetWidth;
-            cardBox.classList.add('flash-ring');
-            glowOverlay.classList.add('flash-bg-glow');
-        }
-
-        function loadNewsItem(story, isAutoCycle = false, direction = 'next') {
-            clearScheduledUpdates();
-            renderDots();
-            detailsLoadedForIndex = -1;
-
-            // Trigger exaggerated visual feedback
-            triggerExaggeratedAnimation(direction);
-
-            document.getElementById('news-category').textContent = story.category;
-            document.getElementById('news-headline').textContent = story.headline;
-            document.getElementById('news-summary').textContent = story.summary;
-
-            const tickerEl = document.getElementById('news-ticker');
-            const tickerBadge = document.getElementById('ticker-badge');
-            const tickerIcon = document.getElementById('ticker-icon');
-
-            tickerEl.textContent = story.ticker;
-            if (story.isPositive) {
-                tickerBadge.className = "px-3 py-1 rounded-md bg-gray-900 border border-emerald-500/50 font-mono text-xs font-bold text-white flex items-center space-x-1.5 transition-all shadow-lg shadow-emerald-950/20";
-                tickerIcon.className = "fa-solid fa-arrow-trend-up text-emerald-400 text-[10px]";
-            } else {
-                tickerBadge.className = "px-3 py-1 rounded-md bg-gray-900 border border-red-500/50 font-mono text-xs font-bold text-white flex items-center space-x-1.5 transition-all shadow-lg shadow-red-950/20";
-                tickerIcon.className = "fa-solid fa-arrow-trend-down text-red-400 text-[10px]";
-            }
-
-            const aiTag = document.getElementById('ai-tag');
-            aiTag.className = "px-3 py-1 rounded-md bg-gray-900/80 border border-gray-800 font-mono text-xs text-gray-400 flex items-center space-x-1.5 transition-all";
-            aiTag.innerHTML = `<i class="fa-solid fa-microchip animate-spin text-[10px] text-gray-500"></i><span>AI Analyzing...</span>`;
-
-            if (isAutoCycle) {
-                playAlertNewsSound();
-                latestNewsIndex = currentIndex;
-                hideTickerBar();
-            }
-
-            // Check if user is viewing history
-            if (currentIndex !== latestNewsIndex) {
-                showTickerBar(newsItems[latestNewsIndex]);
-            } else {
-                hideTickerBar();
-            }
-
-            // AI Tag sentiment resolution delay (1s)
-            activeTimeouts.push(setTimeout(() => {
-                const conf = sentimentMap[story.sentiment] || sentimentMap["Neutral"];
-                aiTag.className = `px-3 py-1 rounded-md border font-mono text-xs font-semibold flex items-center space-x-1.5 transition-all ${conf.style}`;
-                aiTag.innerHTML = `<i class="${conf.icon} text-[10px]"></i><span>${conf.label}</span>`;
-            }, 1000));
-
-            // If drawer is currently expanded, load content for new story automatically
-            if (detailsExpanded) {
-                triggerDetailsLoad();
-            }
-        }
-
-        function showTickerBar(story) {
-            const bar = document.getElementById('live-ticker-bar');
-            const text = document.getElementById('ticker-bar-text');
-            text.textContent = `${story.ticker} • ${story.headline}`;
-            bar.classList.remove('hidden');
-        }
-
-        function hideTickerBar() {
-            document.getElementById('live-ticker-bar').classList.add('hidden');
-        }
-
-        function jumpToLatest() {
-            goToStory(latestNewsIndex, false, 'next', true);
-            resumeTimer();
-        }
-
-        function toggleDetailsInline() {
-            detailsExpanded = !detailsExpanded;
-            playExpandSound(detailsExpanded);
-
-            const drawer = document.getElementById('expand-drawer');
-            const label = document.getElementById('mini-bar-label');
-            const arrow = document.getElementById('mini-bar-arrow');
-            const sparkle = document.getElementById('mini-bar-sparkle');
-
-            if (detailsExpanded) {
-                drawer.classList.add('is-expanded');
-                label.textContent = "COLLAPSE DETAILS";
-                arrow.style.transform = "rotate(180deg)";
-                sparkle.className = "fa-solid fa-chevron-up text-emerald-400 text-[11px]";
-                pauseTimer();
-                triggerDetailsLoad();
-            } else {
-                drawer.classList.remove('is-expanded');
-                label.textContent = "TAP TO EXPAND DETAILS / METRICS & ANALYSIS";
-                arrow.style.transform = "rotate(0deg)";
-                sparkle.className = "fa-solid fa-layer-group text-emerald-400 text-[11px]";
-            }
-        }
-
-        function triggerDetailsLoad() {
-            if (detailsLoadedForIndex === currentIndex) return;
-            detailsLoadedForIndex = currentIndex;
-            const story = newsItems[currentIndex];
-
-            document.getElementById('stock-content').innerHTML = `<div class="animate-skeleton space-y-1.5"><div class="h-3.5 w-full bg-gray-900 rounded"></div><div class="h-3 w-2/3 bg-gray-900 rounded"></div></div>`;
-            document.getElementById('body-content').innerHTML = `<div class="animate-skeleton space-y-1.5"><div class="h-3 w-full bg-gray-900 rounded"></div><div class="h-3 w-4/5 bg-gray-900 rounded"></div></div>`;
-            document.getElementById('analysis-content').innerHTML = `<div class="animate-skeleton space-y-1.5"><div class="h-3 w-3/4 bg-gray-900/80 rounded"></div></div>`;
-
-            // Staggered network loads
-            activeTimeouts.push(setTimeout(() => {
-                document.getElementById('stock-content').innerHTML = `
-                    <div class="space-y-1 font-mono">
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                            <span class="text-white font-bold">${story.stockData.symbol}</span>
-                            <span class="text-gray-300">${story.stockData.price}</span>
-                            <span class="${story.isPositive ? 'text-emerald-400' : 'text-red-400'} font-semibold">${story.stockData.change}</span>
-                            <span class="text-gray-500">VOL: ${story.stockData.volume}</span>
-                        </div>
-                        <p class="text-xs text-gray-400 font-sans">${story.stockData.insight}</p>
-                    </div>
-                `;
-            }, 400));
-
-            activeTimeouts.push(setTimeout(() => {
-                document.getElementById('body-content').innerHTML = `<p class="text-xs sm:text-sm text-gray-300 leading-relaxed">${story.newsBody}</p>`;
-            }, 800));
-
-            activeTimeouts.push(setTimeout(() => {
-                document.getElementById('analysis-content').innerHTML = `<div class="text-xs text-purple-200/90 leading-relaxed font-sans space-y-1">${story.analysis}</div>`;
-            }, 1200));
-        }
-
-        function goToStory(index, pauseUser = false, direction = 'next', isAuto = false) {
-            currentIndex = index;
-            if (!isAuto) {
-                if (direction === 'next') playNextSound();
-                else if (direction === 'prev') playPrevSound();
-            }
-
-            loadNewsItem(newsItems[currentIndex], isAuto, direction);
+        <!-- EXPANDABLE CONTENT SECTION -->
+        <div id="detailsDrawer" class="hidden mt-4 space-y-6 transition-all duration-300">
+          
+          <!-- DEDICATED SCROLL CONTAINER FOR EXPANDED DETAILS -->
+          <div id="detailsScrollArea" class="expanded-scroll-area max-h-[60vh] overflow-y-auto pr-2 space-y-6 custom-scrollbar">
             
-            if (pauseUser) pauseTimer();
-            else resetCycleTimer();
+            <!-- SECTION 1: STOCK METRICS -->
+            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
+              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                STOCK METRICS & FUNDAMENTALS
+              </h3>
+              
+              <!-- Skeleton Loader for Stock Metrics -->
+              <div id="stockMetricsSkeleton" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="h-14 skeleton-box rounded"></div>
+                <div class="h-14 skeleton-box rounded"></div>
+                <div class="h-14 skeleton-box rounded"></div>
+                <div class="h-14 skeleton-box rounded"></div>
+              </div>
+
+              <!-- Loaded Stock Content -->
+              <div id="stockMetricsContent" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
+                  <span class="text-gray-500 block text-[10px]">LAST PRICE</span>
+                  <span id="metricPrice" class="text-white font-semibold text-sm">$0.00</span>
+                </div>
+                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
+                  <span class="text-gray-500 block text-[10px]">DAY CHANGE</span>
+                  <span id="metricChange" class="font-semibold text-sm">+0.00%</span>
+                </div>
+                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
+                  <span class="text-gray-500 block text-[10px]">24H VOLUME</span>
+                  <span id="metricVolume" class="text-gray-300 font-semibold text-sm">--</span>
+                </div>
+                <div class="p-2.5 rounded bg-brand-black/50 border border-brand-border/50">
+                  <span class="text-gray-500 block text-[10px]">VOLATILITY</span>
+                  <span id="metricVolatility" class="text-gray-300 font-semibold text-sm">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: FULL NEWS BODY -->
+            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
+              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                NEWS BODY
+              </h3>
+
+              <!-- Skeleton Loader for News Body -->
+              <div id="newsBodySkeleton" class="space-y-2">
+                <div class="h-4 skeleton-box rounded w-full"></div>
+                <div class="h-4 skeleton-box rounded w-5/6"></div>
+                <div class="h-4 skeleton-box rounded w-4/6"></div>
+              </div>
+
+              <!-- Loaded News Body Text -->
+              <p id="newsBodyText" class="hidden text-sm leading-relaxed text-gray-300 font-sans">
+              </p>
+            </div>
+
+            <!-- SECTION 3: DEEP AI ANALYSIS -->
+            <div class="bg-brand-card/60 border border-brand-border rounded-lg p-4">
+              <h3 class="font-mono text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                DEEP AI STRATEGIC ANALYSIS
+              </h3>
+
+              <!-- Skeleton Loader for AI Analysis -->
+              <div id="aiAnalysisSkeleton" class="space-y-2">
+                <div class="h-4 skeleton-box rounded w-full"></div>
+                <div class="h-4 skeleton-box rounded w-3/4"></div>
+              </div>
+
+              <!-- Loaded AI Analysis Content -->
+              <div id="aiAnalysisContent" class="hidden text-sm leading-relaxed text-gray-300 font-sans space-y-2">
+                <p id="aiAnalysisSummary"></p>
+                <div class="p-3 rounded bg-blue-950/20 border border-blue-500/20 text-xs font-mono text-blue-300 mt-2">
+                  <span class="font-bold">RECOMMENDED ACTION:</span> <span id="aiActionText">--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- BOTTOM FOOTER & NAVIGATION CONTROLS -->
+  <footer class="w-full border-t border-brand-border/60 bg-brand-black/90 px-4 md:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-brand-muted">
+    
+    <!-- Gesture Hints -->
+    <div class="flex items-center space-x-3">
+      <span><i class="fa-solid fa-arrows-up-down text-gray-500 mr-1"></i> Drag Up/Down: History</span>
+      <span>•</span>
+      <span>Tap bar: Details</span>
+    </div>
+
+    <!-- Timeline Navigation Indicators -->
+    <div class="flex items-center space-x-4">
+      <button onclick="prevStory()" class="hover:text-white transition-colors p-1" title="Previous Story">
+        <i class="fa-solid fa-chevron-up"></i>
+      </button>
+
+      <!-- Clickable Indicator Dots -->
+      <div id="timelineDots" class="flex items-center space-x-1.5">
+        <!-- Dots injected dynamically -->
+      </div>
+
+      <button onclick="nextStory()" class="hover:text-white transition-colors p-1" title="Next Story">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+    </div>
+  </footer>
+
+  <!-- AUTH / SIGN IN MODAL -->
+  <div id="authModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-brand-card border border-brand-border rounded-xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+      <button onclick="closeAuthModal()" class="absolute top-3 right-3 text-gray-500 hover:text-white text-sm">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400">
+        <i class="fa-solid fa-user-lock text-xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1">Account Sign In Required</h3>
+      <p class="text-xs text-gray-400 mb-6">Sign in to unlock personalized tickers, custom AI alerts, and institutional analytics.</p>
+      <button onclick="closeAuthModal()" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-semibold transition-colors">
+        CONTINUE WITH GOOGLE
+      </button>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & SYNTHESIZER ENGINE -->
+  <script>
+    // --- SAMPLE NEWS DATABASE ---
+    const newsFeed = [
+      {
+        id: 1,
+        ticker: "NVDA",
+        change: "+8.4%",
+        price: "$138.25",
+        volume: "48.2M",
+        volatility: "High",
+        sentiment: "Strong Positive",
+        headline: "NVIDIA Unveils Next-Gen AI Chip Architecture Delivering 5x Processing Efficiency",
+        time: "Just now",
+        body: "NVIDIA announced its newest Blackwell Ultra architecture during today's unexpected keynote. The new silicon architecture significantly reduces training power consumption while boosting throughput for large-scale multi-modal neural network models.",
+        aiSummary: "Extreme bullish catalyst for semiconductor sector. Model projects potential 6-8% upside across hardware supply chains over the next two trading sessions.",
+        aiAction: "OVERWEIGHT Semiconductor Allocations"
+      },
+      {
+        id: 2,
+        ticker: "TSLA",
+        change: "+5.1%",
+        price: "$242.10",
+        volume: "31.8M",
+        volatility: "Very High",
+        sentiment: "Positive",
+        headline: "Tesla Receives Regulatory Approval for Full Autonomous Robotaxi Fleet Deployment",
+        time: "2 mins ago",
+        body: "State transportation regulators have officially granted Tesla full commercial operation permits for unsupervised driverless ride-hailing services across major metropolitan corridors starting next quarter.",
+        aiSummary: "Strong positive momentum unlock for autonomous vehicle valuations. Removes regulatory overhang that previously discounted robotaxi revenue streams.",
+        aiAction: "ACCUMULATE on minor intraday pullbacks"
+      },
+      {
+        id: 3,
+        ticker: "AAPL",
+        change: "-0.4%",
+        price: "$224.30",
+        volume: "22.1M",
+        volatility: "Low",
+        sentiment: "Neutral",
+        headline: "Apple Adjusts iPhone Production Supply Orders Amid Balanced Global Demand Metrics",
+        time: "5 mins ago",
+        body: "Supply chain intelligence reports indicate Apple has maintained overall component orders flat month-over-month. Stronger demand for Pro models offsets minor contractions in standard base models.",
+        aiSummary: "Neutral earnings baseline. No immediate volatility expansion expected; stable dividend and buyback flows remain supportive.",
+        aiAction: "HOLD current strategic weightings"
+      },
+      {
+        id: 4,
+        ticker: "XOM",
+        change: "-3.2%",
+        price: "$112.50",
+        volume: "18.5M",
+        volatility: "Medium",
+        sentiment: "Negative",
+        headline: "Global Crude Inventories Rise Unexpectedly as Energy Production Exceeds Forecasts",
+        time: "9 mins ago",
+        body: "International energy agency data reveals crude stockpiles surged by 4.2 million barrels last week, surpassing baseline consensus estimates and pressing energy futures lower.",
+        aiSummary: "Negative short-term pricing pressure across upstream oil and gas producers. Margin compression anticipated if inventory builds persist.",
+        aiAction: "REDUCE tactical energy exposure"
+      },
+      {
+        id: 5,
+        ticker: "INTC",
+        change: "-9.1%",
+        price: "$19.80",
+        volume: "65.4M",
+        volatility: "Extreme",
+        sentiment: "Very Negative",
+        headline: "Intel Delays Next-Gen Fabrication Plant Launch Citing Unforeseen Technical Hurdles",
+        time: "14 mins ago",
+        body: "Intel management disclosed a two-quarter postponement for its flagship node fabrication facility. The delay disrupts planned product release timetables for enterprise server chips.",
+        aiSummary: "Severe negative catalyst. Market share erosion risks accelerate toward key foundry competitors.",
+        aiAction: "EXIT / SHORT speculative long positions"
+      }
+    ];
+
+    let currentIndex = 0;
+    let detailsExpanded = false;
+    let audioEnabled = true;
+    let autoCycleTimer = null;
+    let delayTimeout1 = null;
+    let delayTimeout2 = null;
+    let delayTimeout3 = null;
+
+    // --- WEB AUDIO API SYNTHESIZER ENGINE ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new AudioCtx();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const icon = document.getElementById('soundIcon');
+      if (audioEnabled) {
+        icon.className = "fa-solid fa-volume-high";
+      } else {
+        icon.className = "fa-solid fa-volume-xmark text-red-400";
+      }
+    }
+
+    // High Urgency Alert Sound for New Breaking News
+    function playAlertNewsSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      try {
+        const now = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sawtooth';
+        osc2.type = 'sine';
+
+        osc1.frequency.setValueAtTime(880, now); // A5
+        osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.15); // A6
+
+        osc2.frequency.setValueAtTime(1320, now + 0.1);
+        osc2.frequency.exponentialRampToValueAtTime(2640, now + 0.25);
+
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now + 0.08);
+        osc1.stop(now + 0.35);
+        osc2.stop(now + 0.35);
+      } catch (e) {}
+    }
+
+    // Ascending Sound for Next Story
+    function playNextSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.12);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } catch (e) {}
+    }
+
+    // Descending Sound for Previous Story
+    function playPrevSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(780, now);
+        osc.frequency.exponentialRampToValueAtTime(450, now + 0.12);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } catch (e) {}
+    }
+
+    // --- RENDER CURRENT NEWS ITEM ---
+    function renderCurrentNews(direction = 'next', isNewAutoNews = false) {
+      const item = newsFeed[currentIndex];
+
+      // Update Live Ticker Text Bar
+      document.getElementById('liveTickerText').textContent = item.headline;
+
+      const card = document.getElementById('newsCard');
+      const headline = document.getElementById('newsHeadline');
+
+      // Trigger Exaggerated Motion & Flash Animation
+      card.classList.remove('anim-headline-next', 'anim-headline-prev');
+      void card.offsetWidth; // Force Reflow
+      card.classList.add(direction === 'next' ? 'anim-headline-next' : 'anim-headline-prev');
+
+      // Update Stock Ticker Badge
+      document.getElementById('stockSymbol').textContent = `$${item.ticker}`;
+      const changeEl = document.getElementById('stockChange');
+      changeEl.textContent = item.change;
+      if (item.change.startsWith('+')) {
+        changeEl.className = "text-emerald-400 font-bold";
+      } else if (item.change.startsWith('-')) {
+        changeEl.className = "text-rose-400 font-bold";
+      } else {
+        changeEl.className = "text-gray-400 font-bold";
+      }
+
+      // Headline & Timestamp
+      headline.textContent = item.headline;
+      document.getElementById('newsTime').textContent = item.time;
+
+      // Reset AI Sentiment Badge to "Analyzing"
+      const aiBadge = document.getElementById('aiSentimentBadge');
+      aiBadge.className = "inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-brand-card border border-brand-border font-mono text-xs font-medium text-gray-400 transition-all duration-300";
+      aiBadge.innerHTML = `<i class="fa-solid fa-microchip animate-spin text-blue-400"></i><span>AI Analyzing market sentiment...</span>`;
+
+      // Clear pending network delay timeouts
+      clearTimeout(delayTimeout1);
+      clearTimeout(delayTimeout2);
+      clearTimeout(delayTimeout3);
+
+      // Simulate 1s AI Delay for Sentiment Rating
+      delayTimeout1 = setTimeout(() => {
+        applySentimentRating(item.sentiment);
+      }, 1000);
+
+      // Populate Expanded Content Data
+      document.getElementById('metricPrice').textContent = item.price;
+      const mChange = document.getElementById('metricChange');
+      mChange.textContent = item.change;
+      mChange.className = item.change.startsWith('+') ? "text-emerald-400 font-semibold text-sm" : "text-rose-400 font-semibold text-sm";
+      document.getElementById('metricVolume').textContent = item.volume;
+      document.getElementById('metricVolatility').textContent = item.volatility;
+
+      document.getElementById('newsBodyText').textContent = item.body;
+      document.getElementById('aiAnalysisSummary').textContent = item.aiSummary;
+      document.getElementById('aiActionText').textContent = item.aiAction;
+
+      // If details section is open, simulate staggered network delays
+      if (detailsExpanded) {
+        triggerDetailsNetworkDelays();
+      }
+
+      updateTimelineDots();
+
+      if (isNewAutoNews) {
+        playAlertNewsSound();
+        card.classList.add('flash-ring');
+        setTimeout(() => card.classList.remove('flash-ring'), 800);
+      }
+    }
+
+    // --- 5-TIER AI SENTIMENT RATING FORMATTER ---
+    function applySentimentRating(sentiment) {
+      const aiBadge = document.getElementById('aiSentimentBadge');
+      let config = {
+        label: "Neutral",
+        icon: "fa-minus",
+        classes: "bg-gray-900/80 border-gray-700 text-gray-300"
+      };
+
+      switch (sentiment) {
+        case "Strong Positive":
+          config = { label: "STRONG POSITIVE", icon: "fa-angles-up", classes: "bg-emerald-950/60 border-emerald-500/50 text-emerald-400" };
+          break;
+        case "Positive":
+          config = { label: "POSITIVE", icon: "fa-angle-up", classes: "bg-teal-950/60 border-teal-500/50 text-teal-300" };
+          break;
+        case "Neutral":
+          config = { label: "NEUTRAL", icon: "fa-minus", classes: "bg-slate-900/80 border-slate-700 text-slate-300" };
+          break;
+        case "Negative":
+          config = { label: "NEGATIVE", icon: "fa-angle-down", classes: "bg-amber-950/60 border-amber-500/50 text-amber-300" };
+          break;
+        case "Very Negative":
+          config = { label: "VERY NEGATIVE", icon: "fa-angles-down", classes: "bg-rose-950/60 border-rose-500/50 text-rose-400" };
+          break;
+      }
+
+      aiBadge.className = `inline-flex items-center space-x-2 px-3 py-1 rounded-md border font-mono text-xs font-semibold shadow-sm transition-all duration-300 ${config.classes}`;
+      aiBadge.innerHTML = `<i class="fa-solid ${config.icon}"></i><span>${config.label}</span>`;
+    }
+
+    // --- DETAILS ACCORDION TOGGLE & NETWORK DELAY SIMULATION ---
+    function toggleDetails() {
+      detailsExpanded = !detailsExpanded;
+      const drawer = document.getElementById('detailsDrawer');
+      const chevron = document.getElementById('expandChevron');
+      const statusLabel = document.getElementById('expandStatusLabel');
+
+      if (detailsExpanded) {
+        drawer.classList.remove('hidden');
+        chevron.style.transform = 'rotate(90deg)';
+        statusLabel.textContent = "EXPANDED";
+        statusLabel.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-blue-900/40 text-blue-300 border border-blue-500/30";
+        triggerDetailsNetworkDelays();
+      } else {
+        drawer.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+        statusLabel.textContent = "COLLAPSED";
+        statusLabel.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-gray-800 text-gray-400";
+      }
+    }
+
+    function triggerDetailsNetworkDelays() {
+      // Hide Content, Show Skeletons
+      document.getElementById('stockMetricsSkeleton').classList.remove('hidden');
+      document.getElementById('stockMetricsContent').classList.add('hidden');
+
+      document.getElementById('newsBodySkeleton').classList.remove('hidden');
+      document.getElementById('newsBodyText').classList.add('hidden');
+
+      document.getElementById('aiAnalysisSkeleton').classList.remove('hidden');
+      document.getElementById('aiAnalysisContent').classList.add('hidden');
+
+      // Staggered Network Fetches
+      delayTimeout2 = setTimeout(() => {
+        document.getElementById('stockMetricsSkeleton').classList.add('hidden');
+        document.getElementById('stockMetricsContent').classList.remove('hidden');
+      }, 400);
+
+      delayTimeout3 = setTimeout(() => {
+        document.getElementById('newsBodySkeleton').classList.add('hidden');
+        document.getElementById('newsBodyText').classList.remove('hidden');
+
+        document.getElementById('aiAnalysisSkeleton').classList.add('hidden');
+        document.getElementById('aiAnalysisContent').classList.remove('hidden');
+      }, 800);
+    }
+
+    // --- TIMELINE DOTS ---
+    function updateTimelineDots() {
+      const container = document.getElementById('timelineDots');
+      container.innerHTML = '';
+      newsFeed.forEach((_, idx) => {
+        const dot = document.createElement('button');
+        dot.onclick = () => jumpToStory(idx);
+        dot.className = idx === currentIndex 
+          ? "w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50 transition-all" 
+          : "w-1.5 h-1.5 rounded-full bg-gray-700 hover:bg-gray-500 transition-all";
+        container.appendChild(dot);
+      });
+    }
+
+    // --- NAVIGATION CONTROLS ---
+    function nextStory() {
+      currentIndex = (currentIndex + 1) % newsFeed.length;
+      playNextSound();
+      renderCurrentNews('next');
+      resetAutoCycle();
+    }
+
+    function prevStory() {
+      currentIndex = (currentIndex - 1 + newsFeed.length) % newsFeed.length;
+      playPrevSound();
+      renderCurrentNews('prev');
+      resetAutoCycle();
+    }
+
+    function jumpToStory(index) {
+      if (index === currentIndex) return;
+      const dir = index > currentIndex ? 'next' : 'prev';
+      currentIndex = index;
+      playNextSound();
+      renderCurrentNews(dir);
+      resetAutoCycle();
+    }
+
+    function jumpToLiveNews() {
+      jumpToStory(0);
+    }
+
+    // --- AUTOMATIC 20-SECOND CYCLE ---
+    function startAutoCycle() {
+      autoCycleTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % newsFeed.length;
+        renderCurrentNews('next', true);
+      }, 20000);
+    }
+
+    function resetAutoCycle() {
+      clearInterval(autoCycleTimer);
+      startAutoCycle();
+    }
+
+    // --- SMART TOUCH & MOUSE DRAG GESTURE ENGINE ---
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    // Helper: Check if event target is inside expanded content area
+    function isInExpandedDetails(target) {
+      return detailsExpanded && !!target.closest('.expanded-scroll-area');
+    }
+
+    function handleTouchStart(e) {
+      if (isInExpandedDetails(e.target)) return; // Allow normal text scrolling
+      isDragging = true;
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+    }
+
+    function handleTouchMove(e) {
+      if (!isDragging || isInExpandedDetails(e.target)) return;
+      currentY = e.touches ? e.touches[0].clientY : e.clientY;
+      const diffY = currentY - startY;
+
+      const card = document.getElementById('newsCard');
+      card.style.transform = `translateY(${diffY * 0.25}px)`;
+
+      const feedback = document.getElementById('dragFeedback');
+      const feedbackText = document.getElementById('dragFeedbackText');
+
+      if (Math.abs(diffY) > 30) {
+        feedback.style.opacity = '1';
+        feedbackText.textContent = diffY < 0 ? "RELEASE TO NEXT STORY" : "RELEASE TO PREVIOUS STORY";
+      } else {
+        feedback.style.opacity = '0';
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      const card = document.getElementById('newsCard');
+      card.style.transform = 'translateY(0px)';
+      document.getElementById('dragFeedback').style.opacity = '0';
+
+      const diffY = currentY - startY;
+      if (Math.abs(diffY) > 60) {
+        if (diffY < 0) {
+          nextStory();
+        } else {
+          prevStory();
         }
+      }
+      startY = 0;
+      currentY = 0;
+    }
 
-        function nextStory(pauseUser = false, isAuto = false) {
-            const nextIdx = (currentIndex + 1) % newsItems.length;
-            if (isAuto) latestNewsIndex = nextIdx;
-            goToStory(nextIdx, pauseUser, 'next', isAuto);
-        }
+    // Attach Gesture Listeners to Dashboard Container
+    const mainArea = document.getElementById('mainContainer');
+    mainArea.addEventListener('touchstart', handleTouchStart, { passive: true });
+    mainArea.addEventListener('touchmove', handleTouchMove, { passive: true });
+    mainArea.addEventListener('touchend', handleTouchEnd);
 
-        function prevStory(pauseUser = false) {
-            const prevIdx = (currentIndex - 1 + newsItems.length) % newsItems.length;
-            goToStory(prevIdx, pauseUser, 'prev', false);
-        }
+    mainArea.addEventListener('mousedown', handleTouchStart);
+    window.addEventListener('mousemove', handleTouchMove);
+    window.addEventListener('mouseup', handleTouchEnd);
 
-        function pauseTimer() {
-            isPaused = true;
-            if (cycleTimer) clearInterval(cycleTimer);
-            document.getElementById('live-indicator-dot').className = "w-2 h-2 rounded-full bg-amber-500";
-            document.getElementById('live-indicator-text').textContent = "FLASH NEWS (PAUSED)";
-            document.getElementById('pause-status-text').textContent = "PAUSED";
-            document.getElementById('pause-status-text').className = "text-[10px] text-amber-400 font-semibold tracking-wider";
-        }
+    // Keyboard Arrow Navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') prevStory();
+      if (e.key === 'ArrowDown') nextStory();
+    });
 
-        function resumeTimer() {
-            isPaused = false;
-            document.getElementById('live-indicator-dot').className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
-            document.getElementById('live-indicator-text').textContent = "FLASH NEWS";
-            document.getElementById('pause-status-text').textContent = "AUTO CYCLE";
-            document.getElementById('pause-status-text').className = "text-[10px] text-gray-500 hover:text-gray-300 tracking-wider";
-            resetCycleTimer();
-        }
+    // Auth Modal Triggers
+    function triggerAuthModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+    }
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
 
-        function togglePauseManual() {
-            if (isPaused) resumeTimer();
-            else pauseTimer();
-        }
-
-        function resetCycleTimer() {
-            if (cycleTimer) clearInterval(cycleTimer);
-            if (!isPaused) {
-                cycleTimer = setInterval(() => nextStory(false, true), 20000);
-            }
-        }
-
-        // Keyboard Navigation Shortcuts
-        document.addEventListener('keydown', (e) => {
-            ensureAudioContext();
-            if (e.key === 'ArrowUp') prevStory(true);
-            else if (e.key === 'ArrowDown') nextStory(true);
-            else if (e.key === ' ') { e.preventDefault(); togglePauseManual(); }
-            else if (e.key === 'Enter') toggleDetailsInline();
-        });
-
-        // Touch & Mouse Vertical Drag System
-        const stage = document.getElementById('swipe-stage');
-        const dragCue = document.getElementById('drag-cue');
-        const dragCueIcon = document.getElementById('drag-cue-icon');
-        const dragCueText = document.getElementById('drag-cue-text');
-
-        let isDragging = false;
-        let startY = 0;
-        let deltaY = 0;
-        const dragThreshold = 45;
-
-        function handleDragStart(y) {
-            ensureAudioContext();
-            isDragging = true;
-            startY = y;
-            deltaY = 0;
-            pauseTimer();
-        }
-
-        function handleDragMove(y) {
-            if (!isDragging) return;
-            deltaY = y - startY;
-
-            if (Math.abs(deltaY) > 10) {
-                dragCue.classList.remove('opacity-0');
-                if (deltaY < 0) {
-                    dragCueIcon.className = "fa-solid fa-arrow-up text-[11px] text-emerald-400";
-                    dragCueText.textContent = "RELEASE FOR NEXT STORY";
-                } else {
-                    dragCueIcon.className = "fa-solid fa-arrow-down text-[11px] text-teal-400";
-                    dragCueText.textContent = "RELEASE FOR PREVIOUS STORY";
-                }
-            }
-        }
-
-        function handleDragEnd() {
-            if (!isDragging) return;
-            isDragging = false;
-            dragCue.classList.add('opacity-0');
-
-            if (deltaY < -dragThreshold) {
-                nextStory(true);
-            } else if (deltaY > dragThreshold) {
-                prevStory(true);
-            }
-        }
-
-        stage.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) handleDragStart(e.touches[0].clientY);
-        }, { passive: true });
-
-        stage.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 1) handleDragMove(e.touches[0].clientY);
-        }, { passive: true });
-
-        stage.addEventListener('touchend', () => handleDragEnd());
-
-        stage.addEventListener('mousedown', (e) => handleDragStart(e.clientY));
-        window.addEventListener('mousemove', (e) => { if (isDragging) handleDragMove(e.clientY); });
-        window.addEventListener('mouseup', () => { if (isDragging) handleDragEnd(); });
-
-        window.onload = function() {
-            loadNewsItem(newsItems[0], false, 'next');
-            resetCycleTimer();
-        };
-    </script>
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCurrentNews('next');
+      startAutoCycle();
+    });
+  </script>
 </body>
 </html>
